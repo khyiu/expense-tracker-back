@@ -4,16 +4,12 @@ phases:
   install:
     runtime-versions:
       java: corretto11
-  pre_build:
-    commands:
-      - echo Nothing to do in the pre_build phase...
   build:
     commands:
-      - echo Build started on `date`
       - mvn install
   post_build:
     commands:
-      - echo Build completed on `date`
+      - aws s3 rm --recursive "arn:aws:s3:::codepipeline-eu-central-1-623791722169/grocery-tracker-back/SourceArti"
 artifacts:
   files:
     - target/*.jar
