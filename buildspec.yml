@@ -8,13 +8,10 @@ phases:
   install:
     runtime-versions:
       java: corretto11
-  pre_build:
-    commands:
-      - echo Login for sonarcloud $SONAR_LOGIN
-      - mvn verify sonar:sonar -Dsonar.login=$SONAR_LOGIN
   build:
     commands:
       - mvn install
+      - mvn sonar:sonar -Dsonar.login=$SONAR_LOGIN
   post_build:
     commands:
       - mvn package
