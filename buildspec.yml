@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   parameter-store:
-    SONAR_LOGIN: /CodeBuild/SONAR_LOGIN
+    SONAR_LOGIN: "SONAR_LOGIN"
 
 phases:
   install:
