@@ -11,8 +11,8 @@ phases:
   build:
     commands:
       - mvn install
-      - cd ..
       - pwd
+      - ls -l
       - mvn sonar:sonar -Dsonar.login=$SONAR_LOGIN
   post_build:
     commands:
