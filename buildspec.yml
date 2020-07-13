@@ -11,8 +11,9 @@ phases:
   build:
     commands:
       - mvn install
+      - cd ..
       - pwd
-      - mvn -X sonar:sonar -Dsonar.login=$SONAR_LOGIN
+      - mvn sonar:sonar -Dsonar.login=$SONAR_LOGIN
   post_build:
     commands:
       - aws s3 rm --recursive "s3://codepipeline-eu-central-1-623791722169/grocery-tracker-back/SourceArti"
