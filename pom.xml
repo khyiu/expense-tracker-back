@@ -18,6 +18,7 @@
 		<sonar.projectKey>khyiu_grocery-tracker-back</sonar.projectKey>
 		<sonar.organization>khyiu</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<sonar.sources>src</sonar.sources>
 	</properties>
 
 	<dependencies>
