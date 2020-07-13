@@ -10,7 +10,7 @@ phases:
       java: corretto11
   pre_build:
     commands:
-      - echo $SONAR_LOGIN
+      - echo Login for sonarcloud $SONAR_LOGIN
       - mvn verify sonar:sonar -Dsonar.login=$SONAR_LOGIN
   build:
     commands:
