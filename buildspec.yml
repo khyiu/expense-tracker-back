@@ -6,13 +6,11 @@ phases:
       java: corretto11
   build:
     commands:
-      - mvn install
+      - mvn verify
   post_build:
     commands:
-      - mvn package
       - aws s3 rm --recursive "s3://codepipeline-eu-central-1-623791722169/grocery-tracker-back/SourceArti"
 artifacts:
   files:
     - target/*.jar
   discard-paths: yes
-  name: grocery-tracker-back-$AWS_REGION
