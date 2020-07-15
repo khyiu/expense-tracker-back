@@ -28,6 +28,17 @@ Project build process. Fairly easy and intuitive initial setup: simply created a
 and specify to use the _buildspec.yml_ configuration file from the project source.
 Didn't even bother to configure input/output folders in the dedicated S3 bucket -> use default values from CodeBuild.
 
+#### ElasticBeanStalk
+Serving of web application. Creating a basic environment for my Spring boot application was really easy. I've only had 
+to select Java environment, the version of Java to use, and specify the S3 URL where my application artifact would be 
+pushed to.
+
 #### CodePipeline
+Automation of release process. Once again, initial setup was not too difficult.  
+My pipeline is quite simple as well: 
+
+1. Source checkout from Github
+1. Build project based on CodeBuild configuration
+1. Push build artifact to the S3 bucket that is used by Elastic BeanStalk
 
 
