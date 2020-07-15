@@ -9,8 +9,8 @@ and their price. Over time, the application would, then, be able to refine an av
 on a regular basis. Based on this average price, I could then know if I'm spending more or less than usual for a same 
 article. 
 
-#Journey log
-##Stage 1: CI/CD server
+# Journey log
+## Stage 1: CI/CD server
 ### Circle CI
 Initially I gave Circle CI a shot. As many other CI solutions, it was pretty straightforward to define a first working 
 build pipeline: based on a yaml configuration and some commands I've found in some examples, I managed to have my project
@@ -50,7 +50,7 @@ To fix this kind of issue, I figured the simplest way is to:
 1. open the security policy attached to this role
 1. edit the security policy to add the required permission, and specify the resource to which it applies, if necessary
 
-##Stage 2: Automated code review/coverage
+## Stage 2: Automated code review/coverage
 ### Sonarcloud
 To get code coverage metrics and automated code review, I've decided to have my project scanned by Sonarcloud.  
 The setup was super easy. You only need to authorize Sonarcloud to get access to your Github account (because I'm using 
