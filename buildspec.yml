@@ -1,12 +1,18 @@
 version: 0.2
 
+env:
+  parameter-store:
+    SONAR_LOGIN: "SONAR_LOGIN"
+
 phases:
   install:
     runtime-versions:
       java: corretto11
   build:
     commands:
-      - mvn verify
+      - mvn install
+      - git init
+      - mvn sonar:sonar -Dsonar.login=$SONAR_LOGIN
   post_build:
     commands:
       - aws s3 rm --recursive "s3://codepipeline-eu-central-1-623791722169/grocery-tracker-back/SourceArti"
