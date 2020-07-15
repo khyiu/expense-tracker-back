@@ -51,4 +51,22 @@ To fix this kind of issue, I figured the simplest way is to:
 1. edit the security policy to add the required permission, and specify the resource to which it applies, if necessary
 
 ##Stage 2: Automated code review/coverage
+### Sonarcloud
+To get code coverage metrics and automated code review, I've decided to have my project scanned by Sonarcloud.  
+The setup was super easy. You only need to authorize Sonarcloud to get access to your Github account (because I'm using 
+Github as my SCM), and select the project you want to be analyzed.  
+To trigger a Sonarcloud analysis every time my project is built, I had to:
+* add a couple of properties to my _pom.xml_ to idenfity my Sonar project  
+`		<sonar.projectKey>khyiu_grocery-tracker-back</sonar.projectKey>
+ 		<sonar.organization>khyiu</sonar.organization>
+ 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>`  
+ 		Those could be copied from Sonarcloud -> super user friendly
+* in _AWS SystemS Manager_, I've created a parameter of type _secured string_ in the _parameter store_ to hold the login 
+to my Sonarcloud instance. I've called this parameter SONAR_LOGIN and it can be read from my _buildspec.yml_ 
+configuration
+* in the build phase of my _buildspec.yml_, I've added the following Maven command to actually trigger the analysis:
+`mvn sonar:sonar -Dsonar.login=$SONAR_LOGIN`	
+* :exclamation: For some reason, the Maven Sonar plugin only works if the project to analyse is in a Git work tree. 
+The problem is that my AWS pipeline is only fetching the raw sources from my Github repository. As a (temporary ?) hack, 
+I've added a `git init` command prior to triggering the Sonarcloud analysis, and the Maven plugin stopped complaining ...
 
