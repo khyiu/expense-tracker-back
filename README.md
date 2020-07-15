@@ -41,4 +41,14 @@ My pipeline is quite simple as well:
 1. Build project based on CodeBuild configuration
 1. Push build artifact to the S3 bucket that is used by Elastic BeanStalk
 
+#### IAM
+During the first few executions of my pipeline, I often ran into permission issues. For instance, the "CodeBuild" role 
+didn't have permission to list objects, push objects, ... to a certain S3 bucket.  
+To fix this kind of issue, I figured the simplest way is to:
+1. open the IAM console
+1. select the concerned role
+1. open the security policy attached to this role
+1. edit the security policy to add the required permission, and specify the resource to which it applies, if necessary
+
+##Stage 2: Automated code review/coverage
 
