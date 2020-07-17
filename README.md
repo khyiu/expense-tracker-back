@@ -70,3 +70,12 @@ configuration
 The problem is that my AWS pipeline is only fetching the raw sources from my Github repository. As a (temporary ?) hack, 
 I've added a `git init` command prior to triggering the Sonarcloud analysis, and the Maven plugin stopped complaining ...
 
+## Stage 3: Grocery tracker IAM
+### Okta
+With all the marketing people at Okta have done, I've decided to check out their website and what they have to offer.
+As they offer a free developer edition hosted on their cloud, let's give it a go!
+
+Following the guides Okta provides, I managed to integrate user authentication through Okta. 
+But the free developer edition is lacking RBAC. In the meantime, I've discovered AWS Cognito, and figured I could switch
+to it for a try.
+ 
