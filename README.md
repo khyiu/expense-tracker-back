@@ -79,3 +79,11 @@ Following the guides Okta provides, I managed to integrate user authentication t
 But the free developer edition is lacking RBAC. In the meantime, I've discovered AWS Cognito, and figured I could switch
 to it for a try.
  
+### AWS Cognito
+To integrate AWS Cognito, I've followed this [tutorial](https://kevcodez.de/posts/2020-03-26-getting-started-aws-cognito).
+
+:exclamation: Cognito only supports HTTPS login callback URLs. So, I first need to enable HTTPS for my Elastic BeanStalk 
+single instance.
+
+#### Enabling HTTPS for Elastic BeanStalk single instance
+ 

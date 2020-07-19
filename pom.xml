@@ -15,7 +15,6 @@
 	<description>Back-end for my personal grocery tracking application</description>
 	<properties>
 		<java.version>11</java.version>
-		<okta.spring-boot-starter.version>1.4.0</okta.spring-boot-starter.version>
 		<sonar.projectKey>khyiu_grocery-tracker-back</sonar.projectKey>
 		<sonar.organization>khyiu</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
@@ -30,11 +29,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.okta.spring</groupId>
-			<artifactId>okta-spring-boot-starter</artifactId>
-			<version>${okta.spring-boot-starter.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.boot</groupId>-->
+<!--			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>-->
+<!--		</dependency>-->
+
 	</dependencies>
 
 	<build>
