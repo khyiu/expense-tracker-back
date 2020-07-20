@@ -58,30 +58,30 @@
                     <target>8</target>
                 </configuration>
             </plugin>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <configuration>
-                            <target>
-                                <unzip src="${project.build.directory}/${project.build.finalName}.jar"
-                                       dest="${project.build.directory}/${project.build.finalName}"/>
-                                <copy todir="${project.build.directory}/${project.build.finalName}/" overwrite="false">
-                                    <fileset dir="./" includes=".ebextensions/**"/>
-                                </copy>
-                                <zip compress="false"
-                                     destfile="${project.build.directory}/${project.build.finalName}.jar"
-                                     basedir="${project.build.directory}/${project.build.finalName}"/>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <artifactId>maven-antrun-plugin</artifactId>-->
+<!--                <version>3.0.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <phase>package</phase>-->
+<!--                        <configuration>-->
+<!--                            <target>-->
+<!--                                <unzip src="${project.build.directory}/${project.build.finalName}.jar"-->
+<!--                                       dest="${project.build.directory}/${project.build.finalName}"/>-->
+<!--                                <copy todir="${project.build.directory}/${project.build.finalName}/" overwrite="false">-->
+<!--                                    <fileset dir="./" includes=".ebextensions/**"/>-->
+<!--                                </copy>-->
+<!--                                <zip compress="false"-->
+<!--                                     destfile="${project.build.directory}/${project.build.finalName}.jar"-->
+<!--                                     basedir="${project.build.directory}/${project.build.finalName}"/>-->
+<!--                            </target>-->
+<!--                        </configuration>-->
+<!--                        <goals>-->
+<!--                            <goal>run</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 
