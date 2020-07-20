@@ -70,6 +70,7 @@
                                        dest="${project.build.directory}/${project.build.finalName}"/>
                                 <copy todir="${project.build.directory}/${project.build.finalName}/" overwrite="false">
                                     <fileset dir="./" includes=".ebextensions/**"/>
+                                    <fileset dir="./" includes=".platform/**"/>
                                 </copy>
                                 <zip compress="false"
                                      destfile="${project.build.directory}/${project.build.finalName}.jar"
