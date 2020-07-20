@@ -86,4 +86,12 @@ To integrate AWS Cognito, I've followed this [tutorial](https://kevcodez.de/post
 single instance.
 
 #### Enabling HTTPS for Elastic BeanStalk single instance
- 
+As I'm deploying my Spring-Boot app packaged as a jar, I followed this official doc from AWS: 
+[Terminating HTTPS on EC2 instances running Java SE](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/https-singleinstance-java.html).
+
+I tried a whole day to make it work but yet couldn't.  
+It turns out the current documentation only applies to EB instances running on Amazon Linux 1. For more details, take a 
+at this [Stackoverflow post](https://stackoverflow.com/questions/62986216/aws-elastic-beanstalk-single-instance-how-to-enable-https-for-a-spring-boot).
+
+Eventually, I switched my app to new EB environment that is using Java 8 on Amazon Linux 1 and finally got my app to 
+support HTTPS.
