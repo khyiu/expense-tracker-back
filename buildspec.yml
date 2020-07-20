@@ -15,9 +15,12 @@ phases:
       - mvn sonar:sonar -Dsonar.login=$SONAR_LOGIN
   post_build:
     commands:
+      # cleanup source artifact bucket
       - aws s3 rm --recursive "s3://codepipeline-eu-central-1-623791722169/grocery-tracker-back/SourceArti"
+      # move built jar one folder level up to make it easier to package both the jar and the .ebextensions folder into one single zip
+      - cd target
+      - find . -name '*.jar' -exec mv {} .. \;
 artifacts:
   files:
-    - target/*.jar
+    - ./*.jar
     - .ebextensions/**/*
-  discard-paths: yes
