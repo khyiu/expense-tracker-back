@@ -70,7 +70,7 @@ configuration
 The problem is that my AWS pipeline is only fetching the raw sources from my Github repository. As a (temporary ?) hack, 
 I've added a `git init` command prior to triggering the Sonarcloud analysis, and the Maven plugin stopped complaining ...
 
-## Stage 3: Grocery tracker IAM
+## Stage 3: IAM
 ### Okta
 With all the marketing people at Okta have done, I've decided to check out their website and what they have to offer.
 As they offer a free developer edition hosted on their cloud, let's give it a go!
@@ -95,3 +95,16 @@ at this [Stackoverflow post](https://stackoverflow.com/questions/62986216/aws-el
 
 Eventually, I switched my app to new EB environment that is using Java 8 on Amazon Linux 1 and finally got my app to 
 support HTTPS.
+
+## Stage 4: IAM using AWS Cognito
+1. create a Cognito user pool dedicated to Grocery tracker app (:exclamation: don't forget that Cognito only support HTTPS 
+callback URL -> the application has been configured with SSL enabled)
+1. Define a Spring configuration class that enables web security:
+    - `OAuth2SecurityConfig` extending `WebSecurityConfigurerAdapter` and annotated with `@EnableWebSecurity`
+    - Override the `configure(HttpSecurity http)` method as follows, to configure authentication using OAuth2 : 
+    ```java
+    http.authorizeRequests()
+       .oauth2Login()   
+       ...
+    ````
+   - provide a Bean of type `ClientRegistrationRepository` through which we register the OAuth client for AWS Cognito 
