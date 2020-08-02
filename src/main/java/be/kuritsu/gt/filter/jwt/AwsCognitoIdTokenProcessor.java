@@ -2,6 +2,7 @@ package be.kuritsu.gt.filter.jwt;
 
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.RemoteJWKSet;
+import com.nimbusds.jose.proc.JWKSecurityContext;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.util.DefaultResourceRetriever;
@@ -10,6 +11,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import net.minidev.json.JSONArray;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,7 +22,6 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,26 +30,29 @@ import static com.nimbusds.jose.JWSAlgorithm.RS256;
 @Component
 public class AwsCognitoIdTokenProcessor {
 
-    private final ConfigurableJWTProcessor configurableJWTProcessor;
+    private static final int JKWS_ENDPOINT_CONNECTION_READ_TIMEOUT = 2000;
 
-    public AwsCognitoIdTokenProcessor() throws MalformedURLException {
-        ResourceRetriever resourceRetriever =
-                new DefaultResourceRetriever(2000, 2000);
-        URL jwkSetURL = new URL("https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_loOqV5Kja/.well-known/jwks.json");
-        JWKSource keySource = new RemoteJWKSet(jwkSetURL, resourceRetriever);
-        ConfigurableJWTProcessor jwtProcessor = new DefaultJWTProcessor();
-        JWSKeySelector keySelector = new JWSVerificationKeySelector(RS256, keySource);
+    private final ConfigurableJWTProcessor<JWKSecurityContext> configurableJWTProcessor;
+
+    public AwsCognitoIdTokenProcessor(@Value("${oauth.endpoint.jwks.url}") String oauthEndpointJwksURL) throws MalformedURLException {
+        ResourceRetriever resourceRetriever = new DefaultResourceRetriever(JKWS_ENDPOINT_CONNECTION_READ_TIMEOUT, JKWS_ENDPOINT_CONNECTION_READ_TIMEOUT);
+        URL jwkSetURL = new URL(oauthEndpointJwksURL);
+        JWKSource<JWKSecurityContext> keySource = new RemoteJWKSet<>(jwkSetURL, resourceRetriever);
+        ConfigurableJWTProcessor<JWKSecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+        JWSKeySelector<JWKSecurityContext> keySelector = new JWSVerificationKeySelector<>(RS256, keySource);
         jwtProcessor.setJWSKeySelector(keySelector);
         this.configurableJWTProcessor = jwtProcessor;
     }
 
     public Authentication authenticate(HttpServletRequest request) throws Exception {
         String idToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+
         if (idToken != null) {
             JWTClaimsSet claims = this.configurableJWTProcessor.process(this.getBearerToken(idToken), null);
             validateIssuer(claims);
             verifyIfIdToken(claims);
             String username = getUserNameFrom(claims);
+
             if (username != null) {
                 List<GrantedAuthority> grantedAuthorities = getGrantedAuthorities(claims);
                 User user = new User(username, "", getGrantedAuthorities(claims));
