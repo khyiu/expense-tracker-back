@@ -31,7 +31,8 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers("/actuator/info")
                 .permitAll()
-                // todo kyiu: restrict access to other actuator endpoints to admins user
+                .antMatchers("/actuator/**")
+                .hasAnyRole("ROLE_ADMINS")
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -48,7 +49,7 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
                                                                      @Value("${oauth.endpoint.token.url}") String oauthEndpointTokenURL,
                                                                      @Value("${oauth.endpoint.userInfo.url}") String oauthEndpointUserInfoURL,
                                                                      @Value("${oauth.endpoint.jwks.url}") String oauthEndpointJwksURL,
-                                                                     @Value("${oauth.userName.attributeName}") String oauthUserNameAttributeName,
+                                                                     @Value("${oauth.idToken.userName.attributeName}") String oauthUserNameAttributeName,
                                                                      @Value("${oauth.client.id}") String oauthClientId,
                                                                      @Value("${oauth.client.secret}") String oauthClientSecret) {
         ClientRegistration clientRegistration = ClientRegistration.withRegistrationId(oauthClientName)
