@@ -10,6 +10,7 @@ import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.util.DefaultResourceRetriever;
 import com.nimbusds.jose.util.ResourceRetriever;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.proc.BadJWTException;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import net.minidev.json.JSONArray;
@@ -64,6 +65,11 @@ public class AwsCognitoIdTokenProcessor {
 
         if (idToken != null) {
             JWTClaimsSet claims = this.configurableJWTProcessor.process(this.getBearerToken(idToken), null);
+
+            if (!isAccessJWT(claims)) {
+                throw new BadJWTException("Provided token is not an access token");
+            }
+
             String username = getUserNameFrom(claims);
 
             if (username != null) {
@@ -73,6 +79,10 @@ public class AwsCognitoIdTokenProcessor {
             }
         }
         return null;
+    }
+
+    private boolean isAccessJWT(JWTClaimsSet claims) {
+        return claims.getClaim("token_use").equals("access");
     }
 
     private String getUserNameFrom(JWTClaimsSet claims) {
