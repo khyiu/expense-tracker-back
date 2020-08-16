@@ -18,7 +18,15 @@
         <sonar.projectKey>khyiu_grocery-tracker-back</sonar.projectKey>
         <sonar.organization>khyiu</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <grocery-tracker-api-version-hash>68e4e0d4f8</grocery-tracker-api-version-hash>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -40,6 +48,12 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-jose</artifactId>
+        </dependency>
+        <!-- Using JitPack to import a Git repository as a Maven dependency -->
+        <dependency>
+            <groupId>com.github.khyiu</groupId>
+            <artifactId>grocery-tracker-api</artifactId>
+            <version>${grocery-tracker-api-version-hash}</version>
         </dependency>
     </dependencies>
 
@@ -64,6 +78,52 @@
                     <source>8</source>
                     <target>8</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.2</version>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.github.khyiu</groupId>
+                                    <artifactId>grocery-tracker-api</artifactId>
+                                    <version>${grocery-tracker-api-version-hash}</version>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                    <includes>**\/*.yaml</includes>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>4.3.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.build.directory}/grocery-tracker.yaml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <configOptions>
+                                <sourceFolder>src/java/main</sourceFolder>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
