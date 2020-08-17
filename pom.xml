@@ -18,7 +18,7 @@
         <sonar.projectKey>khyiu_grocery-tracker-back</sonar.projectKey>
         <sonar.organization>khyiu</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <grocery-tracker-api-version-hash>68e4e0d4f8</grocery-tracker-api-version-hash>
+        <grocery-tracker-api-version-hash>1c91783f34ba033938dc7738e0addc2b955ae56c</grocery-tracker-api-version-hash>
     </properties>
 
     <repositories>
@@ -54,6 +54,21 @@
             <groupId>com.github.khyiu</groupId>
             <artifactId>grocery-tracker-api</artifactId>
             <version>${grocery-tracker-api-version-hash}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>2.0.1.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.1</version>
         </dependency>
     </dependencies>
 
@@ -118,12 +133,15 @@
                             <generatorName>spring</generatorName>
                             <configOptions>
                                 <sourceFolder>src/java/main</sourceFolder>
+                                <basePackage>be.kuritsu.gt</basePackage>
+                                <apiPackage>be.kuritsu.gt.api</apiPackage>
+                                <modelPackage>be.kuritsu.gt.model</modelPackage>
+                                <interfaceOnly>true</interfaceOnly>
+                                <skipDefaultInterface>true</skipDefaultInterface>
                             </configOptions>
                         </configuration>
                     </execution>
                 </executions>
-                <dependencies>
-                </dependencies>
             </plugin>
         </plugins>
     </build>
