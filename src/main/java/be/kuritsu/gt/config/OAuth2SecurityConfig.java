@@ -14,9 +14,15 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+/*
+    NOTE: 'proxyTargetClass' must be set to 'true' in the @EnableGlobalMethodSecurity annotation because
+    our controller classes implement interfaces and have @Secured annotations applied on them. Without that,
+    proxy in created only on the class, not the interface, and we lose the request mappings. We are then getting
+    404 errors.
+    For more details: https://github.com/spring-projects/spring-framework/issues/23744
+ */
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true)
+@EnableGlobalMethodSecurity(securedEnabled = true, proxyTargetClass = true)
 public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final AwsCognitoJwtAuthFilter jwtAuthFilter;
