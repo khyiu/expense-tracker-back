@@ -18,7 +18,7 @@
         <sonar.projectKey>khyiu_grocery-tracker-back</sonar.projectKey>
         <sonar.organization>khyiu</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <grocery-tracker-api-version-hash>1c91783f34ba033938dc7738e0addc2b955ae56c</grocery-tracker-api-version-hash>
+        <grocery-tracker-api-version-hash>ac63aa8f6da87e1862c1703079f025a6286443de</grocery-tracker-api-version-hash>
     </properties>
 
     <repositories>
@@ -138,6 +138,8 @@
                                 <modelPackage>be.kuritsu.gt.model</modelPackage>
                                 <interfaceOnly>true</interfaceOnly>
                                 <skipDefaultInterface>true</skipDefaultInterface>
+                                <performBeanValidation>true</performBeanValidation>
+                                <useBeanValidation>true</useBeanValidation>
                             </configOptions>
                         </configuration>
                     </execution>
