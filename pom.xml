@@ -19,6 +19,7 @@
         <sonar.organization>khyiu</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <grocery-tracker-api-version-hash>5fa36df3d38f655b0cd5b4080184dd778707bbc8</grocery-tracker-api-version-hash>
+        <lombok.version>1.18.12</lombok.version>
     </properties>
 
     <repositories>
@@ -70,6 +71,12 @@
             <artifactId>jackson-databind-nullable</artifactId>
             <version>0.2.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <!-- Dependencies necessary to use DynamoDB  -->
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -120,6 +127,13 @@
                 <configuration>
                     <source>8</source>
                     <target>8</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
