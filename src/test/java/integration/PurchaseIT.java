@@ -140,6 +140,6 @@ public class PurchaseIT {
         mockMvc.perform(post("/purchases")
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(getDefaultPurchaseRequest())))
-                .andExpect(status().isCreated());
+                .andExpect(status().isOk());
     }
 }
