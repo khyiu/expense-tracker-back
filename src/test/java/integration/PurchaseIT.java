@@ -10,6 +10,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Assert;
@@ -109,11 +110,12 @@ public class PurchaseIT {
     }
 
     @Test
-    public void test_register_purchase_unauthenticated_user() {
+    public void test_register_purchase_unauthenticated_user() throws JsonProcessingException {
+        String requestJsonString = objectMapper.writeValueAsString(getDefaultPurchaseRequest());
         Exception thrownException = Assert.assertThrows(Exception.class, () -> {
             mockMvc.perform(post("/purchases")
                     .contentType("application/json")
-                    .content(objectMapper.writeValueAsString(getDefaultPurchaseRequest())));
+                    .content(requestJsonString));
         });
 
         assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
@@ -121,11 +123,12 @@ public class PurchaseIT {
 
     @Test
     @WithMockUser(roles = "GUEST")
-    public void test_register_purchase_unauthorized_user() {
+    public void test_register_purchase_unauthorized_user() throws JsonProcessingException {
+        String requestJsonString = objectMapper.writeValueAsString(getDefaultPurchaseRequest());
         Exception thrownException = Assert.assertThrows(Exception.class, () -> {
             mockMvc.perform(post("/purchases")
                     .contentType("application/json")
-                    .content(objectMapper.writeValueAsString(getDefaultPurchaseRequest())));
+                    .content(requestJsonString));
         });
 
         assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
