@@ -107,4 +107,7 @@ callback URL -> the application has been configured with SSL enabled)
        .oauth2Login()   
        ...
     ````
-   - provide a Bean of type `ClientRegistrationRepository` through which we register the OAuth client for AWS Cognito 
+   - provide a Bean of type `ClientRegistrationRepository` through which we register the OAuth client for AWS Cognito
+   
+## Stage 5: AWS DynamoDB
+ 
