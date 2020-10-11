@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "oauth.client.id=clientId",
         "oauth.client.secret=clientSecret"
 })
-public class PurchaseIntegrationTest {
+public class PurchaseIT {
 
     private MockMvc mockMvc;
 
