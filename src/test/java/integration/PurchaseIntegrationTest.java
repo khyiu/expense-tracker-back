@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "oauth.client.id=clientId",
         "oauth.client.secret=clientSecret"
 })
-public class PurchaseIT {
+public class PurchaseIntegrationTest {
 
     private MockMvc mockMvc;
 
@@ -140,6 +140,6 @@ public class PurchaseIT {
         mockMvc.perform(post("/purchases")
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(getDefaultPurchaseRequest())))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 }
