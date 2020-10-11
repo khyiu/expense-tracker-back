@@ -3,7 +3,6 @@ version: 0.2
 env:
   parameter-store:
     SONAR_LOGIN: "SONAR_LOGIN"
-    AMAZON_DYNAMODB_ENDPOINT: "AMAZON_DYNAMODB_ENDPOINT"
     AMAZON_AWS_ACCESSKEY: "AMAZON_AWS_ACCESSKEY"
     AMAZON_AWS_SECRETKEY: "AMAZON_AWS_SECRETKEY"
 
@@ -13,7 +12,7 @@ phases:
       java: corretto11
   build:
     commands:
-      - mvn install -Damazon.dynamodb.endpoint=$AMAZON_DYNAMODB_ENDPOINT
+      - mvn install -Damazon.dynamodb.endpoint=http://dynamodb.eu-central-1.amazonaws.com
       - git init
       - mvn sonar:sonar -Dsonar.login=$SONAR_LOGIN
   post_build:
