@@ -13,7 +13,7 @@ phases:
       java: corretto11
   build:
     commands:
-      - mvn install -Damazon.dynamodb.endpoint=$AMAZON_DYNAMODB_ENDPOINT -Damazon.aws.accesskey=$AMAZON_AWS_ACCESSKEY -Damazon.aws.secretkey=$AMAZON_AWS_SECRETKEY
+      - mvn install -Damazon.dynamodb.endpoint=$AMAZON_DYNAMODB_ENDPOINT
       - git init
       - mvn sonar:sonar -Dsonar.login=$SONAR_LOGIN
   post_build:
