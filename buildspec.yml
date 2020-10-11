@@ -12,7 +12,7 @@ phases:
       java: corretto11
   build:
     commands:
-      - mvn install -Damazon.dynamodb.endpoint=http://dynamodb.eu-central-1.amazonaws.com
+      - mvn install
       - git init
       - mvn sonar:sonar -Dsonar.login=$SONAR_LOGIN
   post_build:
