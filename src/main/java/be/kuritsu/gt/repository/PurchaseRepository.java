@@ -7,4 +7,5 @@ import org.springframework.data.repository.CrudRepository;
 @EnableScan
 public interface PurchaseRepository extends CrudRepository<PurchaseEntity, String> {
 
+    void deleteByTestData(boolean testData);
 }

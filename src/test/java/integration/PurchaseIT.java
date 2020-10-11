@@ -5,8 +5,14 @@ import be.kuritsu.gt.model.Packaging;
 import be.kuritsu.gt.model.PurchaseLocation;
 import be.kuritsu.gt.model.PurchaseRequest;
 import be.kuritsu.gt.model.UnitMeasurement;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemResult;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +30,8 @@ import org.springframework.web.context.WebApplicationContext;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -44,10 +52,39 @@ public class PurchaseIT {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @Autowired
+    private AmazonDynamoDB amazonDynamoDB;
+
     @Before
     public void setup() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
                 .build();
+    }
+
+    @After
+    public void cleanupTestData() {
+        Map<String, AttributeValue> expressionAttributeValues =
+                new HashMap<>();
+        expressionAttributeValues.put(":testDataValue", new AttributeValue().withN("1"));
+
+        ScanRequest scanRequest = new ScanRequest()
+                .withTableName("Purchase")
+                .withFilterExpression("testData = :testDataValue")
+                .withProjectionExpression("id,purchaseDate")
+                .withExpressionAttributeValues(expressionAttributeValues);
+
+        ScanResult scanResult = amazonDynamoDB.scan(scanRequest);
+
+        scanResult.getItems().forEach(item -> {
+            Map<String, AttributeValue> deleteItemRequestKeys = new HashMap<>();
+            deleteItemRequestKeys.put("id", new AttributeValue(item.get("id").getS()));
+            deleteItemRequestKeys.put("purchaseDate", new AttributeValue(item.get("purchaseDate").getS()));
+
+            DeleteItemRequest deleteItemRequest = new DeleteItemRequest()
+                    .withTableName("Purchase")
+                    .withKey(deleteItemRequestKeys);
+            amazonDynamoDB.deleteItem(deleteItemRequest);
+        });
     }
 
     private PurchaseRequest getDefaultPurchaseRequest() {
