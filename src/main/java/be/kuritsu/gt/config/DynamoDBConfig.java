@@ -25,6 +25,9 @@ public class DynamoDBConfig {
 
     @Bean
     public AmazonDynamoDB amazonDynamoDB() {
+        System.out.println("endpoint   >>> " + amazonDynamoDBEndpoint);
+        System.out.println("access key >>> " + amazonAWSAccessKey);
+        System.out.println("secret key >>> " + amazonAWSSecretKey);
         return AmazonDynamoDBClientBuilder.standard()
                 .withCredentials(
                         new AWSStaticCredentialsProvider(new BasicAWSCredentials(amazonAWSAccessKey, amazonAWSSecretKey))
