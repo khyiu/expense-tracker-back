@@ -3,7 +3,9 @@ version: 0.2
 env:
   parameter-store:
     SONAR_LOGIN: "SONAR_LOGIN"
-    DB_ENDPOINT: /DB/endpoint
+    DYNAMODB_ENDPOINT: "DYNAMODB_ENDPOINT"
+    DYNAMODB_ACCESS_KEY: "DYNAMODB_ACCESS_KEY"
+    DYNAMODB_SECRET_KEY: "DYNAMODB_SECRET_KEY"
 
 phases:
   install:
@@ -11,7 +13,7 @@ phases:
       java: corretto11
   build:
     commands:
-      - mvn install -Damazon.dynamodb.endpoint=$DB_ENDPOINT
+      - mvn install -Damazon.dynamodb.endpoint=$DB_ENDPOINT -Damazon.aws.accesskey=$DYNAMODB_ACCESS_KEY -Damazon.aws.secretkey=$DYNAMODB_SECRET_KEY
       - git init
       - mvn sonar:sonar -Dsonar.login=$SONAR_LOGIN
   post_build:
