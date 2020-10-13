@@ -77,6 +77,10 @@ public class PurchaseIntegrationTest {
 
         scanResult.getItems().forEach(item -> {
             Map<String, AttributeValue> deleteItemRequestKeys = new HashMap<>();
+            /*
+             DeleteItemRequest requires Global Secondary Index, if any in the target table, to be specified,
+             otherwise, deleteItem(...) operation won't work.
+             */
             deleteItemRequestKeys.put("id", new AttributeValue(item.get("id").getS()));
             deleteItemRequestKeys.put("purchaseDate", new AttributeValue(item.get("purchaseDate").getS()));
 
