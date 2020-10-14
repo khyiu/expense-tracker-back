@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashSet;
+import java.util.UUID;
 
 @Service
 public class PurchaseServiceImpl implements PurchaseService {
@@ -21,9 +23,19 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public Purchase registerPurchase(PurchaseRequest purchaseRequest) {
+        String locationId = purchaseRequest.getLocation().getId();
+        if (locationId == null) {
+            locationId = UUID.randomUUID().toString();
+        }
+
         PurchaseEntity purchaseEntity = PurchaseEntity.builder()
                 .purchaseDate(purchaseRequest.getDate().format(DateTimeFormatter.ISO_DATE))
                 .brand(purchaseRequest.getBrand())
+                .descriptionTags(new LinkedHashSet<>(purchaseRequest.getDescriptionTags()))
+                .unitPrice(purchaseRequest.getUnitPrice())
+                .locationId(locationId)
+                .locationDescription(purchaseRequest.getLocation().getDescription())
+                .locationLocationTag(purchaseRequest.getLocation().getLocationTag())
                 .testData(true)
                 .build();
 

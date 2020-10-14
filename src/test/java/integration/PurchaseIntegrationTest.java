@@ -29,6 +29,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,7 +62,8 @@ public class PurchaseIntegrationTest {
                 .build();
     }
 
-    @After
+    // todo kyiu: reactivate tearDown
+//    @After
     public void cleanupTestData() {
         Map<String, AttributeValue> expressionAttributeValues =
                 new HashMap<>();
@@ -100,8 +102,8 @@ public class PurchaseIntegrationTest {
                                 .locationTag("Montreal")
                 )
                 .brand("Ben & Jerry's")
-                .descriptionTags(Collections.singletonList("Cookie dough"))
-                .unitPrice(BigDecimal.valueOf(10.0))
+                .descriptionTags(Arrays.asList("Cookie dough", "Organic Milk"))
+                .unitPrice(BigDecimal.valueOf(9.95))
                 .packaging(
                         new Packaging()
                                 .nbUnitPerPackage(1)
