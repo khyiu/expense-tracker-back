@@ -24,7 +24,9 @@ public class PurchaseEntity {
     private String locationId;
     private String locationDescription;
     private String locationLocationTag;
-
+    private Integer nbUnitPerPackage;
+    private String packageUnitMeasurementType;
+    private Integer packageUnitMeasureQuantity;
     /*
      Tried to have 2 entities extends an abstract one that contains the property definitions so that test data could be
      stored in a dedicated table but didn't work. Another "datasource" would require another AWS account. Maybe the group
@@ -105,6 +107,33 @@ public class PurchaseEntity {
 
     public void setLocationLocationTag(String locationLocationTag) {
         this.locationLocationTag = locationLocationTag;
+    }
+
+    @DynamoDBAttribute
+    public Integer getNbUnitPerPackage() {
+        return nbUnitPerPackage;
+    }
+
+    public void setNbUnitPerPackage(Integer nbUnitPerPackage) {
+        this.nbUnitPerPackage = nbUnitPerPackage;
+    }
+
+    @DynamoDBAttribute
+    public String getPackageUnitMeasurementType() {
+        return packageUnitMeasurementType;
+    }
+
+    public void setPackageUnitMeasurementType(String packageUnitMeasurementType) {
+        this.packageUnitMeasurementType = packageUnitMeasurementType;
+    }
+
+    @DynamoDBAttribute
+    public Integer getPackageUnitMeasureQuantity() {
+        return packageUnitMeasureQuantity;
+    }
+
+    public void setPackageUnitMeasureQuantity(Integer packageUnitMeasureQuantity) {
+        this.packageUnitMeasureQuantity = packageUnitMeasureQuantity;
     }
 
     @DynamoDBAttribute
