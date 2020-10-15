@@ -36,9 +36,9 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .locationId(locationId)
                 .locationDescription(purchaseRequest.getLocation().getDescription())
                 .locationLocationTag(purchaseRequest.getLocation().getLocationTag())
-                .nbUnitPerPackage(1)
-                .packageUnitMeasureQuantity(560)
-                .packageUnitMeasurementType("ml")
+                .nbUnitPerPackage(purchaseRequest.getPackaging().getNbUnitPerPackage())
+                .packageUnitMeasureQuantity(purchaseRequest.getPackaging().getUnitMeasurements().getQuantity())
+                .packageUnitMeasurementType(purchaseRequest.getPackaging().getUnitMeasurements().getType().getValue())
                 .testData(true)
                 .build();
 
