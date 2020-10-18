@@ -5,6 +5,7 @@ import be.kuritsu.gt.model.PurchaseEntity;
 import be.kuritsu.gt.model.PurchaseRequest;
 import be.kuritsu.gt.repository.PurchaseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
@@ -39,6 +40,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .nbUnitPerPackage(purchaseRequest.getPackaging().getNbUnitPerPackage())
                 .packageUnitMeasureQuantity(purchaseRequest.getPackaging().getUnitMeasurements().getQuantity())
                 .packageUnitMeasurementType(purchaseRequest.getPackaging().getUnitMeasurements().getType().getValue())
+                .ownr(SecurityContextHolder.getContext().getAuthentication().getName())
                 .testData(true)
                 .build();
 

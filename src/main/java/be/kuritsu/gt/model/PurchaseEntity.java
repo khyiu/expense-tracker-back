@@ -8,9 +8,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 import lombok.Builder;
 
 import java.math.BigDecimal;
-import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.UUID;
 
 @Builder
 @DynamoDBTable(tableName = "Purchase")
@@ -27,6 +25,8 @@ public class PurchaseEntity {
     private Integer nbUnitPerPackage;
     private String packageUnitMeasurementType;
     private Integer packageUnitMeasureQuantity;
+    // "owner" is a reserved attribute name in DynamoDB...
+    private String ownr;
     /*
      Tried to have 2 entities extends an abstract one that contains the property definitions so that test data could be
      stored in a dedicated table but didn't work. Another "datasource" would require another AWS account. Maybe the group
@@ -134,6 +134,16 @@ public class PurchaseEntity {
 
     public void setPackageUnitMeasureQuantity(Integer packageUnitMeasureQuantity) {
         this.packageUnitMeasureQuantity = packageUnitMeasureQuantity;
+    }
+
+    @DynamoDBIndexHashKey(globalSecondaryIndexName = "ownerIdx")
+    @DynamoDBAttribute
+    public String getOwnr() {
+        return ownr;
+    }
+
+    public void setOwnr(String ownr) {
+        this.ownr = ownr;
     }
 
     @DynamoDBAttribute
