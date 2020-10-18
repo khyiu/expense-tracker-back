@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 /*
     NOTE: 'proxyTargetClass' must be set to 'true' in the @EnableGlobalMethodSecurity annotation because
     our controller classes implement interfaces and have @Secured annotations applied on them. Without that,
@@ -34,7 +35,13 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
+        /*
+         In latest versions of Spring Boot, CSRF is enabled by default, so, requests of type POST, PUT, DELETE require
+         a CSRF token. As the current application only exposes a REST API that is secured through JWT, CSRF can be
+         disabled
+         */
+        http.csrf().disable()
+                .authorizeRequests()
                 .antMatchers("/actuator/info")
                 .permitAll()
                 .antMatchers("/actuator/**")

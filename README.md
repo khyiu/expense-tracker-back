@@ -110,4 +110,12 @@ callback URL -> the application has been configured with SSL enabled)
    - provide a Bean of type `ClientRegistrationRepository` through which we register the OAuth client for AWS Cognito
    
 ## Stage 5: AWS DynamoDB
- 
+1. Create `Purchase` table in AWS DynamoDB
+1. Follow instructions from [AWS DynamoDB documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.client.create-user-policy.html)  
+to create user policy, access and secret keys to connect to the table created in previous step
+1. To integrate DynamoDB in the app, use this [tutorial](https://www.baeldung.com/spring-data-dynamodb) as a base
+1. For integration tests, as obviously, we don't want to expose access and secret keys in the code base:
+    - create a variable in AWS property store for endpoint, access and secrey keys
+    - edit user policy associated to `codebuild` to grant it read access to those properties
+    - edit `buildspec.yml` file to load those properties and pass them as Maven system properties, so that Spring is able to inject them using `@Value`
+1. Use `NoSQL Workbench for Amazon DynamoDB` tool to design table and synchronize it to AWS  
