@@ -42,7 +42,7 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
          */
         http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/actuator/info")
+                .antMatchers("/actuator/info", "/.well-known/pki-validation/**")
                 .permitAll()
                 .antMatchers("/actuator/**")
                 .hasAnyRole("ROLE_ADMINS")
