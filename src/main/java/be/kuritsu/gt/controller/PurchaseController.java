@@ -11,6 +11,8 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @RestController
 public class PurchaseController implements PurchasesApi {
@@ -27,5 +29,11 @@ public class PurchaseController implements PurchasesApi {
     public ResponseEntity<Purchase> registerPurchase(@Valid PurchaseRequest purchaseRequest) {
         Purchase purchase = purchaseService.registerPurchase(purchaseRequest);
         return new ResponseEntity<>(purchase, HttpStatus.CREATED);
+    }
+
+    @Secured("ROLE_USERS")
+    @Override
+    public ResponseEntity<List<Purchase>> getPurchases(@NotNull @Valid Integer pageNumber, @NotNull @Valid Integer pageSize) {
+        return ResponseEntity.ok(purchaseService.getPurchases(pageNumber, pageSize));
     }
 }
