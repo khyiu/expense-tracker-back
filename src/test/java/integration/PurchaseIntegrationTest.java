@@ -7,8 +7,6 @@ import be.kuritsu.gt.model.PurchaseRequest;
 import be.kuritsu.gt.model.UnitMeasurement;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.BatchGetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.BatchGetItemResult;
 import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
@@ -26,18 +24,21 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -119,11 +120,10 @@ public class PurchaseIntegrationTest {
     @Test
     public void test_register_purchase_unauthenticated_user() throws JsonProcessingException {
         String requestJsonString = objectMapper.writeValueAsString(getDefaultPurchaseRequest());
-        Exception thrownException = Assert.assertThrows(Exception.class, () -> {
-            mockMvc.perform(post("/purchases")
-                    .contentType("application/json")
-                    .content(requestJsonString));
-        });
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(post("/purchases")
+                        .contentType("application/json")
+                        .content(requestJsonString)));
 
         assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
     }
@@ -132,11 +132,10 @@ public class PurchaseIntegrationTest {
     @WithMockUser(roles = "GUEST")
     public void test_register_purchase_unauthorized_user() throws JsonProcessingException {
         String requestJsonString = objectMapper.writeValueAsString(getDefaultPurchaseRequest());
-        Exception thrownException = Assert.assertThrows(Exception.class, () -> {
-            mockMvc.perform(post("/purchases")
-                    .contentType("application/json")
-                    .content(requestJsonString));
-        });
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(post("/purchases")
+                        .contentType("application/json")
+                        .content(requestJsonString)));
 
         assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
     }
@@ -212,5 +211,37 @@ public class PurchaseIntegrationTest {
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(purchaseRequest)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void test_getting_purchases_unauthenticated_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(get("/purchases")
+                        .queryParam("pageNumber", "0")
+                        .queryParam("pageSize", "1")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "GUEST")
+    public void test_getting_purchases_unauthorized_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(get("/purchases")
+                        .queryParam("pageNumber", "0")
+                        .queryParam("pageSize", "1")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS")
+    public void test_getting_purchases_no_items_found() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/purchases")
+                .queryParam("pageNumber", "0")
+                .queryParam("pageSize", "1"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"))
+                .andReturn();
     }
 }
