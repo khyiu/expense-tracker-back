@@ -71,7 +71,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .map(PurchaseConverter::purchaseEntityToPurchase)
                 .collect(Collectors.toList());
         return new PurchasesResponse()
-                .totalElements(Long.valueOf(purchaseEntities.getTotalElements()).intValue())
+                .totalElements((int) purchaseEntities.getTotalElements())
                 .number(purchaseEntities.getNumber())
                 .totalPages(purchaseEntities.getTotalPages())
                 .content(purchases);
