@@ -1,5 +1,6 @@
 package be.kuritsu.gt.controller;
 
+import be.kuritsu.gt.api.PurchaseApi;
 import be.kuritsu.gt.api.PurchasesApi;
 import be.kuritsu.gt.model.Purchase;
 import be.kuritsu.gt.model.PurchaseRequest;
@@ -15,7 +16,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 @RestController
-public class PurchaseController implements PurchasesApi {
+public class PurchaseController implements PurchasesApi, PurchaseApi {
 
     private final PurchaseService purchaseService;
 
@@ -36,5 +37,13 @@ public class PurchaseController implements PurchasesApi {
     public ResponseEntity<PurchasesResponse> getPurchases(@NotNull @Valid Integer pageNumber,
                                                           @NotNull @Valid Integer pageSize) {
         return ResponseEntity.ok(purchaseService.getPurchases(pageNumber, pageSize));
+    }
+
+
+    @Secured("ROLE_USERS")
+    @Override
+    public ResponseEntity<Void> deletePurchase(String purchaseId) {
+        purchaseService.deletePurchase(purchaseId);
+        return ResponseEntity.ok().build();
     }
 }

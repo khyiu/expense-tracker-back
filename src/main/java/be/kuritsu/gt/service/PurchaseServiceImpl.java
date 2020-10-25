@@ -1,6 +1,7 @@
 package be.kuritsu.gt.service;
 
 import be.kuritsu.gt.converter.PurchaseConverter;
+import be.kuritsu.gt.exception.PurchaseNotFoundException;
 import be.kuritsu.gt.model.Purchase;
 import be.kuritsu.gt.model.PurchaseEntity;
 import be.kuritsu.gt.model.PurchaseRequest;
@@ -58,11 +59,6 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public PurchasesResponse getPurchases(int pageNumber, int pageSize) {
-        /*
-         Sorting does not work with scan operation in DynamoDB... but functionally speaking, it does not matter as
-         the front-end application does not provide a feature such as displaying the purchases in a sortable dashboard.
-         At most, there'll be something like lazy-loaded purchase timeline like Tweeter timeline...
-         */
         Pageable page = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC, "purchaseDate");
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Page<PurchaseEntity> purchaseEntities = purchaseRepository.findByOwnr(username, page);
@@ -75,5 +71,17 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .number(purchaseEntities.getNumber())
                 .totalPages(purchaseEntities.getTotalPages())
                 .content(purchases);
+    }
+
+    @Override
+    public void deletePurchase(String purchaseId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        PurchaseEntity purchase = purchaseRepository.findByOwnrAndId(username, purchaseId);
+
+        if (purchase == null) {
+            throw new PurchaseNotFoundException();
+        }
+
+        purchaseRepository.delete(purchase);
     }
 }

@@ -12,4 +12,6 @@ import org.springframework.data.domain.Pageable;
 public interface PurchaseRepository extends DynamoDBPagingAndSortingRepository<PurchaseEntity, String> {
 
     Page<PurchaseEntity> findByOwnr(String ownr, Pageable pageable);
+
+    PurchaseEntity findByOwnrAndId(String ownr, String id);
 }
