@@ -3,6 +3,7 @@ package be.kuritsu.gt.controller;
 import be.kuritsu.gt.api.PurchasesApi;
 import be.kuritsu.gt.model.Purchase;
 import be.kuritsu.gt.model.PurchaseRequest;
+import be.kuritsu.gt.model.PurchasesResponse;
 import be.kuritsu.gt.service.PurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 @RestController
 public class PurchaseController implements PurchasesApi {
@@ -27,5 +29,12 @@ public class PurchaseController implements PurchasesApi {
     public ResponseEntity<Purchase> registerPurchase(@Valid PurchaseRequest purchaseRequest) {
         Purchase purchase = purchaseService.registerPurchase(purchaseRequest);
         return new ResponseEntity<>(purchase, HttpStatus.CREATED);
+    }
+
+    @Secured("ROLE_USERS")
+    @Override
+    public ResponseEntity<PurchasesResponse> getPurchases(@NotNull @Valid Integer pageNumber,
+                                                          @NotNull @Valid Integer pageSize) {
+        return ResponseEntity.ok(purchaseService.getPurchases(pageNumber, pageSize));
     }
 }
