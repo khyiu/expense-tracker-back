@@ -48,7 +48,7 @@ public class PurchaseConverter {
         return new Packaging()
                 .nbUnitPerPackage(nbUnitPerPackage)
                 .unitMeasurements(new UnitMeasurement()
-                        .type(UnitMeasurement.TypeEnum.valueOf(packageUnitMeasurementType))
+                        .type(UnitMeasurement.TypeEnum.fromValue(packageUnitMeasurementType))
                         .quantity(packageUnitMeasureQuantity)
                 );
     }

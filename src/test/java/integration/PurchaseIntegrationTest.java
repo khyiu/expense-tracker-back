@@ -2,8 +2,10 @@ package integration;
 
 import be.kuritsu.gt.Application;
 import be.kuritsu.gt.model.Packaging;
+import be.kuritsu.gt.model.Purchase;
 import be.kuritsu.gt.model.PurchaseLocation;
 import be.kuritsu.gt.model.PurchaseRequest;
+import be.kuritsu.gt.model.PurchasesResponse;
 import be.kuritsu.gt.model.UnitMeasurement;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
@@ -241,7 +243,88 @@ public class PurchaseIntegrationTest {
                 .queryParam("pageNumber", "0")
                 .queryParam("pageSize", "1"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("[]"))
+                .andDo(print())
+                .andExpect(content().json("{}"))
                 .andReturn();
     }
+
+    @Test
+    @WithMockUser(roles = "USERS", username = "john_wick")
+    public void test_getting_purchases() throws Exception {
+        PurchaseRequest purchaseRequest1 = new PurchaseRequest()
+                .date(LocalDate.of(2020, 9, 14))
+                .location(
+                        new PurchaseLocation()
+                                .description("Toronto")
+                                .locationTag("Walmart")
+                )
+                .brand("Ben & Jerry's")
+                .descriptionTags(Arrays.asList("Cookie dough", "Organic Milk"))
+                .unitPrice(BigDecimal.valueOf(7.99))
+                .packaging(
+                        new Packaging()
+                                .nbUnitPerPackage(1)
+                                .unitMeasurements(
+                                        new UnitMeasurement()
+                                                .quantity(500)
+                                                .type(UnitMeasurement.TypeEnum.ML)
+                                )
+                );
+
+        PurchaseRequest purchaseRequest2 = new PurchaseRequest()
+                .date(LocalDate.of(2020, 9, 1))
+                .location(
+                        new PurchaseLocation()
+                                .description("Vancouver")
+                                .locationTag("Walmart")
+                )
+                .brand("Ben & Jerry's")
+                .descriptionTags(Arrays.asList("Cookie dough", "Organic Milk"))
+                .unitPrice(BigDecimal.valueOf(7.99))
+                .packaging(
+                        new Packaging()
+                                .nbUnitPerPackage(1)
+                                .unitMeasurements(
+                                        new UnitMeasurement()
+                                                .quantity(500)
+                                                .type(UnitMeasurement.TypeEnum.ML)
+                                )
+                );
+
+        mockMvc.perform(post("/purchases")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(purchaseRequest1)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/purchases")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(purchaseRequest2)))
+                .andExpect(status().isCreated());
+
+        MvcResult mvcResult = mockMvc.perform(get("/purchases")
+                .queryParam("pageNumber", "0")
+                .queryParam("pageSize", "1"))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn();
+
+        PurchasesResponse purchasesResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), PurchasesResponse.class);
+        assertThat(purchasesResponse.getNumber()).isEqualTo(0);
+        assertThat(purchasesResponse.getTotalElements()).isEqualTo(2);
+        assertThat(purchasesResponse.getTotalPages()).isEqualTo(2);
+        assertThat(purchasesResponse.getContent()).isNotNull().hasSize(1);
+        Purchase purchase = purchasesResponse.getContent().get(0);
+        assertThat(purchase.getId()).isNotNull();
+        assertThat(purchase.getDate()).isEqualTo(LocalDate.of(2020, 9, 14));
+        assertThat(purchase.getBrand()).isEqualTo("Ben & Jerry's");
+        assertThat(purchase.getDescriptionTags()).containsAll(Arrays.asList("Cookie dough", "Organic Milk"));
+        assertThat(purchase.getUnitPrice()).isEqualByComparingTo(BigDecimal.valueOf(7.99));
+        assertThat(purchase.getLocation().getId()).isNotNull();
+        assertThat(purchase.getLocation().getDescription()).isEqualTo("Toronto");
+        assertThat(purchase.getLocation().getLocationTag()).isEqualTo("Walmart");
+        assertThat(purchase.getPackaging().getNbUnitPerPackage()).isEqualTo(1);
+        assertThat(purchase.getPackaging().getUnitMeasurements().getType()).isEqualTo(UnitMeasurement.TypeEnum.ML);
+        assertThat(purchase.getPackaging().getUnitMeasurements().getQuantity()).isEqualTo(500);
+    }
+
 }
