@@ -309,7 +309,7 @@ public class PurchaseIntegrationTest {
                 .andReturn();
 
         PurchasesResponse purchasesResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), PurchasesResponse.class);
-        assertThat(purchasesResponse.getNumber()).isEqualTo(0);
+        assertThat(purchasesResponse.getNumber()).isZero();
         assertThat(purchasesResponse.getTotalElements()).isEqualTo(2);
         assertThat(purchasesResponse.getTotalPages()).isEqualTo(2);
         assertThat(purchasesResponse.getContent()).isNotNull().hasSize(1);
