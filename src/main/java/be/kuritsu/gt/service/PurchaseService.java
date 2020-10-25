@@ -4,8 +4,6 @@ import be.kuritsu.gt.model.Purchase;
 import be.kuritsu.gt.model.PurchaseRequest;
 import be.kuritsu.gt.model.PurchasesResponse;
 
-import java.util.List;
-
 public interface PurchaseService {
 
     Purchase registerPurchase(PurchaseRequest purchaseRequest);
