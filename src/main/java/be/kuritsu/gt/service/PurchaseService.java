@@ -9,4 +9,6 @@ public interface PurchaseService {
     Purchase registerPurchase(PurchaseRequest purchaseRequest);
 
     PurchasesResponse getPurchases(int pageNumber, int pageSize);
+
+    void deletePurchase(String purchaseId);
 }

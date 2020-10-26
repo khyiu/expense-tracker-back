@@ -1,11 +1,16 @@
 package be.kuritsu.gt.service;
 
 import be.kuritsu.gt.converter.PurchaseConverter;
+import be.kuritsu.gt.exception.PurchaseNotFoundException;
 import be.kuritsu.gt.model.Purchase;
 import be.kuritsu.gt.model.PurchaseEntity;
 import be.kuritsu.gt.model.PurchaseRequest;
 import be.kuritsu.gt.model.PurchasesResponse;
 import be.kuritsu.gt.repository.PurchaseRepository;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,8 +20,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -24,10 +31,13 @@ import java.util.stream.Collectors;
 public class PurchaseServiceImpl implements PurchaseService {
 
     private final PurchaseRepository purchaseRepository;
+    private final AmazonDynamoDB amazonDynamoDB;
 
     @Autowired
-    public PurchaseServiceImpl(PurchaseRepository purchaseRepository) {
+    public PurchaseServiceImpl(PurchaseRepository purchaseRepository,
+                               AmazonDynamoDB amazonDynamoDB) {
         this.purchaseRepository = purchaseRepository;
+        this.amazonDynamoDB = amazonDynamoDB;
     }
 
     @Override
@@ -53,16 +63,11 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .build();
 
         purchaseRepository.save(purchaseEntity);
-        return null;
+        return PurchaseConverter.purchaseEntityToPurchase(purchaseEntity);
     }
 
     @Override
     public PurchasesResponse getPurchases(int pageNumber, int pageSize) {
-        /*
-         Sorting does not work with scan operation in DynamoDB... but functionally speaking, it does not matter as
-         the front-end application does not provide a feature such as displaying the purchases in a sortable dashboard.
-         At most, there'll be something like lazy-loaded purchase timeline like Tweeter timeline...
-         */
         Pageable page = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC, "purchaseDate");
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Page<PurchaseEntity> purchaseEntities = purchaseRepository.findByOwnr(username, page);
@@ -75,5 +80,17 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .number(purchaseEntities.getNumber())
                 .totalPages(purchaseEntities.getTotalPages())
                 .content(purchases);
+    }
+
+    @Override
+    public void deletePurchase(String purchaseId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        PurchaseEntity purchase = purchaseRepository.findByOwnrAndId(username, purchaseId);
+
+        if (purchase == null) {
+            throw new PurchaseNotFoundException();
+        }
+
+       purchaseRepository.deletePurchase(amazonDynamoDB, purchase);
     }
 }

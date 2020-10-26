@@ -14,6 +14,7 @@ import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,8 +36,10 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -309,7 +312,7 @@ public class PurchaseIntegrationTest {
                 .andReturn();
 
         PurchasesResponse purchasesResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), PurchasesResponse.class);
-        assertThat(purchasesResponse.getNumber()).isEqualTo(0);
+        assertThat(purchasesResponse.getNumber()).isZero();
         assertThat(purchasesResponse.getTotalElements()).isEqualTo(2);
         assertThat(purchasesResponse.getTotalPages()).isEqualTo(2);
         assertThat(purchasesResponse.getContent()).isNotNull().hasSize(1);
@@ -327,4 +330,64 @@ public class PurchaseIntegrationTest {
         assertThat(purchase.getPackaging().getUnitMeasurements().getQuantity()).isEqualTo(500);
     }
 
+    @Test
+    public void test_delete_purchase_unauthenticated_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(delete("/purchase/" + UUID.randomUUID())
+                        .contentType("application/json"))
+        );
+
+        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "GUEST")
+    public void test_delete_purchase_unauthorized_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(delete("/purchase/" + UUID.randomUUID())
+                        .contentType("application/json"))
+        );
+
+        assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS")
+    public void test_delete_purchase_not_existing() throws Exception {
+        mockMvc.perform(delete("/purchase/" + UUID.randomUUID())
+                .contentType("application/json"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS")
+    public void test_delete_purchase() throws Exception {
+        MvcResult createResult = mockMvc.perform(post("/purchases")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(getDefaultPurchaseRequest())))
+                .andReturn();
+        String purchaseId = JsonPath.read(createResult.getResponse().getContentAsString(), "$.id");
+
+        {
+            MvcResult getResult = mockMvc.perform(get("/purchases")
+                    .queryParam("pageNumber", "0")
+                    .queryParam("pageSize", "1"))
+                    .andReturn();
+            int nbPurchases = JsonPath.read(getResult.getResponse().getContentAsString(), "$.totalElements");
+            assertThat(nbPurchases).isOne();
+        }
+
+        mockMvc.perform(delete("/purchase/" + purchaseId)
+                .contentType("application/json"))
+                .andExpect(status().isOk());
+
+        {
+            MvcResult getResult = mockMvc.perform(get("/purchases")
+                    .queryParam("pageNumber", "0")
+                    .queryParam("pageSize", "1"))
+                    .andReturn();
+            int nbPurchases = JsonPath.read(getResult.getResponse().getContentAsString(), "$.totalElements");
+            assertThat(nbPurchases).isZero();
+        }
+    }
 }
