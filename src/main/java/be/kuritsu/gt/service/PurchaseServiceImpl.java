@@ -54,7 +54,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .build();
 
         purchaseRepository.save(purchaseEntity);
-        return null;
+        return PurchaseConverter.purchaseEntityToPurchase(purchaseEntity);
     }
 
     @Override
