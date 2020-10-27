@@ -1,6 +1,5 @@
 package be.kuritsu.gt.repository;
 
-import be.kuritsu.gt.model.Purchase;
 import be.kuritsu.gt.model.PurchaseEntity;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
