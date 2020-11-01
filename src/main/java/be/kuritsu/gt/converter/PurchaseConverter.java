@@ -4,11 +4,15 @@ import be.kuritsu.gt.model.Packaging;
 import be.kuritsu.gt.model.Purchase;
 import be.kuritsu.gt.model.PurchaseEntity;
 import be.kuritsu.gt.model.PurchaseLocation;
+import be.kuritsu.gt.model.PurchaseRequest;
 import be.kuritsu.gt.model.UnitMeasurement;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.UUID;
 
 public class PurchaseConverter {
 
@@ -51,5 +55,28 @@ public class PurchaseConverter {
                         .type(UnitMeasurement.TypeEnum.fromValue(packageUnitMeasurementType))
                         .quantity(packageUnitMeasureQuantity)
                 );
+    }
+
+    public static PurchaseEntity toPurchaseEntity(PurchaseRequest purchaseRequest) {
+        String locationId = purchaseRequest.getLocation().getId();
+
+        if (locationId == null) {
+            locationId = UUID.randomUUID().toString();
+        }
+
+        return PurchaseEntity.builder()
+                .purchaseDate(purchaseRequest.getDate().format(DateTimeFormatter.ISO_DATE))
+                .brand(purchaseRequest.getBrand())
+                .descriptionTags(new LinkedHashSet<>(purchaseRequest.getDescriptionTags()))
+                .unitPrice(purchaseRequest.getUnitPrice())
+                .locationId(locationId)
+                .locationDescription(purchaseRequest.getLocation().getDescription())
+                .locationLocationTag(purchaseRequest.getLocation().getLocationTag())
+                .nbUnitPerPackage(purchaseRequest.getPackaging().getNbUnitPerPackage())
+                .packageUnitMeasureQuantity(purchaseRequest.getPackaging().getUnitMeasurements().getQuantity())
+                .packageUnitMeasurementType(purchaseRequest.getPackaging().getUnitMeasurements().getType().getValue())
+                .ownr(SecurityContextHolder.getContext().getAuthentication().getName())
+                .testData(true)
+                .build();
     }
 }

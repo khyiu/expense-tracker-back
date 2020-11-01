@@ -41,17 +41,17 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
          disabled
          */
         http.csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/actuator/info", "/.well-known/pki-validation/**")
-                .permitAll()
-                .antMatchers("/actuator/**")
-                .hasAnyRole("ROLE_ADMINS")
-                .anyRequest()
-                .authenticated()
-                .and()
-                .oauth2Login()
-                .and()
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+//                .authorizeRequests()
+//                .antMatchers("/actuator/info", "/.well-known/pki-validation/**")
+//                .permitAll()
+//                .antMatchers("/actuator/**")
+//                .hasAnyRole("ROLE_ADMINS")
+//                .anyRequest()
+                .anonymous();
+//                .and()
+//                .oauth2Login()
+//                .and()
+//                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean

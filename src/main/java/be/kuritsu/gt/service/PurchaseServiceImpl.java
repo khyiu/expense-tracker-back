@@ -16,10 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,26 +34,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public Purchase registerPurchase(PurchaseRequest purchaseRequest) {
-        String locationId = purchaseRequest.getLocation().getId();
-        if (locationId == null) {
-            locationId = UUID.randomUUID().toString();
-        }
-
-        PurchaseEntity purchaseEntity = PurchaseEntity.builder()
-                .purchaseDate(purchaseRequest.getDate().format(DateTimeFormatter.ISO_DATE))
-                .brand(purchaseRequest.getBrand())
-                .descriptionTags(new LinkedHashSet<>(purchaseRequest.getDescriptionTags()))
-                .unitPrice(purchaseRequest.getUnitPrice())
-                .locationId(locationId)
-                .locationDescription(purchaseRequest.getLocation().getDescription())
-                .locationLocationTag(purchaseRequest.getLocation().getLocationTag())
-                .nbUnitPerPackage(purchaseRequest.getPackaging().getNbUnitPerPackage())
-                .packageUnitMeasureQuantity(purchaseRequest.getPackaging().getUnitMeasurements().getQuantity())
-                .packageUnitMeasurementType(purchaseRequest.getPackaging().getUnitMeasurements().getType().getValue())
-                .ownr(SecurityContextHolder.getContext().getAuthentication().getName())
-                .testData(true)
-                .build();
-
+        PurchaseEntity purchaseEntity = PurchaseConverter.toPurchaseEntity(purchaseRequest);
         purchaseRepository.save(purchaseEntity);
         return PurchaseConverter.purchaseEntityToPurchase(purchaseEntity);
     }
@@ -86,6 +64,22 @@ public class PurchaseServiceImpl implements PurchaseService {
             throw new PurchaseNotFoundException();
         }
 
-       purchaseRepository.deletePurchase(amazonDynamoDB, purchase);
+        purchaseRepository.deletePurchase(amazonDynamoDB, purchase);
+    }
+
+    @Override
+    public Purchase updatePurchase(String purchaseId, PurchaseRequest purchaseRequest) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        PurchaseEntity currentPurchase = purchaseRepository.findByOwnrAndId(username, purchaseId);
+
+        if (currentPurchase == null) {
+            throw new PurchaseNotFoundException();
+        }
+
+        PurchaseEntity purchaseWithUpdatedValues = PurchaseConverter.toPurchaseEntity(purchaseRequest);
+        purchaseWithUpdatedValues.setId(purchaseId);
+        purchaseRepository.updatePurchase(amazonDynamoDB, purchaseWithUpdatedValues);
+
+        return PurchaseConverter.purchaseEntityToPurchase(purchaseRepository.findByOwnrAndId(username, purchaseId));
     }
 }
