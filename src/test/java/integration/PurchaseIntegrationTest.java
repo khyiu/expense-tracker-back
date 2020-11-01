@@ -42,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -389,5 +390,98 @@ public class PurchaseIntegrationTest {
             int nbPurchases = JsonPath.read(getResult.getResponse().getContentAsString(), "$.totalElements");
             assertThat(nbPurchases).isZero();
         }
+    }
+
+    @Test
+    public void test_update_purchase_unauthenticated_user() throws JsonProcessingException {
+        String requestJsonString = objectMapper.writeValueAsString(getDefaultPurchaseRequest());
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(put("/purchase/998eee99-d4cc-4a42-b09f-0f46b2856c40")
+                        .contentType("application/json")
+                        .content(requestJsonString)));
+
+        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "GUEST")
+    public void test_update_purchase_unauthorized_user() throws JsonProcessingException {
+        String requestJsonString = objectMapper.writeValueAsString(getDefaultPurchaseRequest());
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(put("/purchase/998eee99-d4cc-4a42-b09f-0f46b2856c40")
+                        .contentType("application/json")
+                        .content(requestJsonString)));
+
+        assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS")
+    public void test_update_purchase_non_existing() throws Exception {
+        String requestJsonString = objectMapper.writeValueAsString(getDefaultPurchaseRequest());
+        mockMvc.perform(put("/purchase/998eee99-d4cc-4a42-b09f-0f46b2856c40")
+                .contentType("application/json")
+                .content(requestJsonString))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS", username = "rick_sanchez")
+    public void test_update_purchase() throws Exception {
+        MvcResult createResult = mockMvc.perform(post("/purchases")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(getDefaultPurchaseRequest())))
+                .andReturn();
+        String purchaseId = JsonPath.read(createResult.getResponse().getContentAsString(), "$.id");
+
+        PurchaseRequest updatePurchaseRequest = new PurchaseRequest()
+                .date(LocalDate.of(2020, 9, 14))
+                .location(
+                        new PurchaseLocation()
+                                .description("Costco")
+                                .locationTag("Toronto")
+                )
+                .brand("Generic brand")
+                .descriptionTags(Arrays.asList("Vanilla", "Chocolate"))
+                .unitPrice(BigDecimal.valueOf(7.26))
+                .packaging(
+                        new Packaging()
+                                .nbUnitPerPackage(1)
+                                .unitMeasurements(
+                                        new UnitMeasurement()
+                                                .quantity(44)
+                                                .type(UnitMeasurement.TypeEnum.CL)
+                                )
+                );
+
+        mockMvc.perform(put("/purchase/" + purchaseId)
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(updatePurchaseRequest)))
+                .andExpect(status().isOk());
+
+        MvcResult mvcResult = mockMvc.perform(get("/purchases")
+                .queryParam("pageNumber", "0")
+                .queryParam("pageSize", "1"))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn();
+
+        PurchasesResponse purchasesResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), PurchasesResponse.class);
+        assertThat(purchasesResponse.getNumber()).isZero();
+        assertThat(purchasesResponse.getTotalElements()).isEqualTo(1);
+        assertThat(purchasesResponse.getTotalPages()).isEqualTo(1);
+        assertThat(purchasesResponse.getContent()).isNotNull().hasSize(1);
+        Purchase purchase = purchasesResponse.getContent().get(0);
+        assertThat(purchase.getId()).isNotNull();
+        assertThat(purchase.getDate()).isEqualTo(LocalDate.of(2020, 9, 14));
+        assertThat(purchase.getBrand()).isEqualTo("Generic brand");
+        assertThat(purchase.getDescriptionTags()).contains("Vanilla", "Chocolate");
+        assertThat(purchase.getUnitPrice()).isEqualByComparingTo(BigDecimal.valueOf(7.26));
+        assertThat(purchase.getLocation().getId()).isNotNull();
+        assertThat(purchase.getLocation().getDescription()).isEqualTo("Costco");
+        assertThat(purchase.getLocation().getLocationTag()).isEqualTo("Toronto");
+        assertThat(purchase.getPackaging().getNbUnitPerPackage()).isEqualTo(1);
+        assertThat(purchase.getPackaging().getUnitMeasurements().getType()).isEqualTo(UnitMeasurement.TypeEnum.CL);
+        assertThat(purchase.getPackaging().getUnitMeasurements().getQuantity()).isEqualTo(44);
     }
 }
