@@ -39,11 +39,16 @@ public class PurchaseController implements PurchasesApi, PurchaseApi {
         return ResponseEntity.ok(purchaseService.getPurchases(pageNumber, pageSize));
     }
 
-
     @Secured("ROLE_USERS")
     @Override
     public ResponseEntity<Void> deletePurchase(String purchaseId) {
         purchaseService.deletePurchase(purchaseId);
         return ResponseEntity.ok().build();
+    }
+
+    @Secured("ROLE_USERS")
+    @Override
+    public ResponseEntity<Purchase> updatePurchase(String purchaseId, @Valid PurchaseRequest purchaseRequest) {
+        return ResponseEntity.ok(purchaseService.updatePurchase(purchaseId, purchaseRequest));
     }
 }

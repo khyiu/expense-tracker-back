@@ -11,4 +11,6 @@ public interface PurchaseService {
     PurchasesResponse getPurchases(int pageNumber, int pageSize);
 
     void deletePurchase(String purchaseId);
+
+    Purchase updatePurchase(String purchaseId, PurchaseRequest purchaseRequest);
 }
