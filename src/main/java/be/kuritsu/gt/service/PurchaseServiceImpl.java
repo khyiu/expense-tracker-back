@@ -4,10 +4,13 @@ import be.kuritsu.gt.converter.PurchaseConverter;
 import be.kuritsu.gt.exception.PurchaseNotFoundException;
 import be.kuritsu.gt.model.Purchase;
 import be.kuritsu.gt.model.PurchaseEntity;
+import be.kuritsu.gt.model.PurchaseLocation;
 import be.kuritsu.gt.model.PurchaseRequest;
 import be.kuritsu.gt.model.PurchasesResponse;
 import be.kuritsu.gt.repository.PurchaseRepository;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +19,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,5 +86,20 @@ public class PurchaseServiceImpl implements PurchaseService {
         purchaseRepository.updatePurchase(amazonDynamoDB, purchaseWithUpdatedValues);
 
         return PurchaseConverter.purchaseEntityToPurchase(purchaseRepository.findByOwnrAndId(username, purchaseId));
+    }
+
+    @Override
+    public List<PurchaseLocation> getPurchaseLocations() {
+        ScanRequest scanRequest = new ScanRequest()
+                .withTableName("Purchase")
+                .withIndexName("locationIdx");
+        ScanResult result = amazonDynamoDB.scan(scanRequest);
+        return result.getItems().stream()
+                .map(purchaseLocationMap -> new PurchaseLocation()
+                        .id(purchaseLocationMap.get("locationId").getS())
+                        .description(purchaseLocationMap.get("locationDescription").getS())
+                        .locationTag(purchaseLocationMap.get("locationLocationTag").getS()))
+                .sorted(Comparator.comparing(pLocation -> (pLocation.getDescription() + pLocation.getLocationTag())))
+                .collect(Collectors.toList());
     }
 }
