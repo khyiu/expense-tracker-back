@@ -9,6 +9,8 @@ and their price. Over time, the application would, then, be able to refine an av
 on a regular basis. Based on this average price, I could then know if I'm spending more or less than usual for a same 
 article. 
 
+SonarCloud status: [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=khyiu_grocery-tracker-back&metric=alert_status)](https://sonarcloud.io/dashboard?id=khyiu_grocery-tracker-back)
+
 # Journey log
 ## Stage 1: CI/CD server
 ### Circle CI
