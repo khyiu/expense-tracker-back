@@ -505,7 +505,7 @@ public class PurchaseIntegrationTest {
     }
 
     @Test
-    @WithMockUser("USERS")
+    @WithMockUser(roles = "USERS", username = "tony_soprano")
     public void test_get_purchase_locations_none() throws Exception {
         mockMvc.perform(get("/purchaseLocations"))
                 .andExpect(status().isOk())
@@ -514,7 +514,7 @@ public class PurchaseIntegrationTest {
     }
 
     @Test
-    @WithMockUser(value = "USERS", username = "john_wick")
+    @WithMockUser(roles = "USERS", username = "john_wick")
     public void test_get_purchase_locations() throws Exception {
         mockMvc.perform(post("/purchases")
                 .contentType("application/json")
