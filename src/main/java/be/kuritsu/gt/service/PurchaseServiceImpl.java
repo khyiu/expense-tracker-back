@@ -4,6 +4,7 @@ import be.kuritsu.gt.converter.PurchaseConverter;
 import be.kuritsu.gt.exception.PurchaseNotFoundException;
 import be.kuritsu.gt.model.Purchase;
 import be.kuritsu.gt.model.PurchaseEntity;
+import be.kuritsu.gt.model.PurchaseLocation;
 import be.kuritsu.gt.model.PurchaseRequest;
 import be.kuritsu.gt.model.PurchasesResponse;
 import be.kuritsu.gt.repository.PurchaseRepository;
@@ -16,7 +17,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -81,5 +84,13 @@ public class PurchaseServiceImpl implements PurchaseService {
         purchaseRepository.updatePurchase(amazonDynamoDB, purchaseWithUpdatedValues);
 
         return PurchaseConverter.purchaseEntityToPurchase(purchaseRepository.findByOwnrAndId(username, purchaseId));
+    }
+
+    @Override
+    public List<PurchaseLocation> getPurchaseLocations() {
+        Set<PurchaseLocation> purchaseLocations = purchaseRepository.getPurchaseLocations(amazonDynamoDB);
+        return purchaseLocations.stream()
+                .sorted(Comparator.comparing(purchaseLocation -> purchaseLocation.getDescription() + purchaseLocation.getLocationTag()))
+                .collect(Collectors.toList());
     }
 }

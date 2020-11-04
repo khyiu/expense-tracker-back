@@ -1,8 +1,10 @@
 package be.kuritsu.gt.controller;
 
 import be.kuritsu.gt.api.PurchaseApi;
+import be.kuritsu.gt.api.PurchaseLocationsApi;
 import be.kuritsu.gt.api.PurchasesApi;
 import be.kuritsu.gt.model.Purchase;
+import be.kuritsu.gt.model.PurchaseLocation;
 import be.kuritsu.gt.model.PurchaseRequest;
 import be.kuritsu.gt.model.PurchasesResponse;
 import be.kuritsu.gt.service.PurchaseService;
@@ -14,9 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @RestController
-public class PurchaseController implements PurchasesApi, PurchaseApi {
+public class PurchaseController implements PurchasesApi, PurchaseApi, PurchaseLocationsApi {
 
     private final PurchaseService purchaseService;
 
@@ -50,5 +53,11 @@ public class PurchaseController implements PurchasesApi, PurchaseApi {
     @Override
     public ResponseEntity<Purchase> updatePurchase(String purchaseId, @Valid PurchaseRequest purchaseRequest) {
         return ResponseEntity.ok(purchaseService.updatePurchase(purchaseId, purchaseRequest));
+    }
+
+    @Secured("ROLE_USERS")
+    @Override
+    public ResponseEntity<List<PurchaseLocation>> getPurchaseLocations() {
+        return ResponseEntity.ok(purchaseService.getPurchaseLocations());
     }
 }

@@ -18,7 +18,7 @@
         <sonar.projectKey>khyiu_grocery-tracker-back</sonar.projectKey>
         <sonar.organization>khyiu</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <grocery-tracker-api-version-hash>6249373a5ba515666c79923e0f994ab3cf41f5fe</grocery-tracker-api-version-hash>
+        <grocery-tracker-api-version-hash>92c8e39e50a1fb65b286171ddc02730d7272c1f1</grocery-tracker-api-version-hash>
         <lombok.version>1.18.12</lombok.version>
     </properties>
 
