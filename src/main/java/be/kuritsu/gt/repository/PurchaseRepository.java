@@ -1,9 +1,12 @@
 package be.kuritsu.gt.repository;
 
 import be.kuritsu.gt.model.PurchaseEntity;
+import be.kuritsu.gt.model.PurchaseLocation;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
+import com.amazonaws.services.dynamodbv2.model.QueryRequest;
+import com.amazonaws.services.dynamodbv2.model.QueryResult;
 import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import org.socialsignin.spring.data.dynamodb.repository.DynamoDBPagingAndSortingRepository;
 import org.socialsignin.spring.data.dynamodb.repository.EnableScan;
@@ -12,8 +15,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 @EnableScanCount
 @EnableScan
@@ -83,5 +90,35 @@ public interface PurchaseRepository extends DynamoDBPagingAndSortingRepository<P
         updateItemRequest.setExpressionAttributeNames(expressionAttributeNames);
         updateItemRequest.setExpressionAttributeValues(expressionAttributeValues);
         amazonDynamoDB.updateItem(updateItemRequest);
+    }
+
+    default Set<PurchaseLocation> getPurchaseLocations(AmazonDynamoDB amazonDynamoDB) {
+        Map<String, String> expressionAttributeNames = new HashMap<>();
+        expressionAttributeNames.put("#locationLocationTag", "locationLocationTag");
+        expressionAttributeNames.put("#locationId", "locationId");
+        expressionAttributeNames.put("#locationDescription", "locationDescription");
+        expressionAttributeNames.put("#ownr", "ownr");
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":ownr", new AttributeValue(username));
+
+        QueryRequest queryRequest = new QueryRequest();
+        queryRequest.setTableName("Purchase");
+        queryRequest.setIndexName("ownerIdx");
+        String keyConditionExpression = "#ownr = :ownr";
+        queryRequest.setKeyConditionExpression(keyConditionExpression);
+        String projectionExpression = "#locationLocationTag,#locationId,#locationDescription";
+        queryRequest.setProjectionExpression(projectionExpression);
+        queryRequest.setExpressionAttributeNames(expressionAttributeNames);
+        queryRequest.setExpressionAttributeValues(expressionAttributeValues);
+
+        QueryResult queryResult = amazonDynamoDB.query(queryRequest);
+        return queryResult.getItems().stream()
+                .map(valuesMap -> new PurchaseLocation()
+                        .id(valuesMap.get("locationId").getS())
+                        .description(valuesMap.get("locationDescription").getS())
+                        .locationTag(valuesMap.get("locationLocationTag").getS()))
+                .collect(Collectors.toSet());
     }
 }

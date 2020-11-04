@@ -19,9 +19,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,16 +92,9 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public List<PurchaseLocation> getPurchaseLocations() {
-        ScanRequest scanRequest = new ScanRequest()
-                .withTableName("Purchase")
-                .withIndexName("locationIdx");
-        ScanResult result = amazonDynamoDB.scan(scanRequest);
-        return result.getItems().stream()
-                .map(purchaseLocationMap -> new PurchaseLocation()
-                        .id(purchaseLocationMap.get("locationId").getS())
-                        .description(purchaseLocationMap.get("locationDescription").getS())
-                        .locationTag(purchaseLocationMap.get("locationLocationTag").getS()))
-                .sorted(Comparator.comparing(pLocation -> (pLocation.getDescription() + pLocation.getLocationTag())))
+        Set<PurchaseLocation> purchaseLocations = purchaseRepository.getPurchaseLocations(amazonDynamoDB);
+        return purchaseLocations.stream()
+                .sorted(Comparator.comparing(purchaseLocation -> purchaseLocation.getDescription() + purchaseLocation.getLocationTag()))
                 .collect(Collectors.toList());
     }
 }

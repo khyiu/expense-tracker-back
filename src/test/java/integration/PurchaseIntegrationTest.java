@@ -39,12 +39,14 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -483,5 +485,47 @@ public class PurchaseIntegrationTest {
         assertThat(purchase.getPackaging().getNbUnitPerPackage()).isEqualTo(1);
         assertThat(purchase.getPackaging().getUnitMeasurements().getType()).isEqualTo(UnitMeasurement.TypeEnum.CL);
         assertThat(purchase.getPackaging().getUnitMeasurements().getQuantity()).isEqualTo(44);
+    }
+
+    @Test
+    public void test_get_purchase_locations_unauthenticated_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(get("/purchaseLocations")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
+    }
+
+    @Test
+    @WithMockUser("GUEST")
+    public void test_get_purchase_locations_unauthorized_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(get("/purchaseLocations")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser("USERS")
+    public void test_get_purchase_locations_none() throws Exception {
+        mockMvc.perform(get("/purchaseLocations"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    @WithMockUser(value = "USERS", username = "john_wick")
+    public void test_get_purchase_locations() throws Exception {
+        mockMvc.perform(post("/purchases")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(getDefaultPurchaseRequest())));
+
+        mockMvc.perform(get("/purchaseLocations"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").isString())
+                .andExpect(jsonPath("$[0].description").value("Provigo"))
+                .andExpect(jsonPath("$[0].locationTag").value("Montreal"));
     }
 }
