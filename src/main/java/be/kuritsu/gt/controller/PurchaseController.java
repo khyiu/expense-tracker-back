@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -35,6 +36,7 @@ public class PurchaseController implements PurchasesApi, PurchaseApi, PurchaseLo
         return new ResponseEntity<>(purchase, HttpStatus.CREATED);
     }
 
+    @CrossOrigin
     @Secured("ROLE_USERS")
     @Override
     public ResponseEntity<PurchasesResponse> getPurchases(@NotNull @Valid Integer pageNumber,
