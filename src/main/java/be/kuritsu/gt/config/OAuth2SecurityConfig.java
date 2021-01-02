@@ -40,7 +40,8 @@ public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter {
          a CSRF token. As the current application only exposes a REST API that is secured through JWT, CSRF can be
          disabled
          */
-        http.csrf().disable()
+        http.cors().and()
+                .csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/actuator/info", "/.well-known/pki-validation/**")
                 .permitAll()
