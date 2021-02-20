@@ -18,7 +18,7 @@
         <sonar.projectKey>khyiu_grocery-tracker-back</sonar.projectKey>
         <sonar.organization>khyiu</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <grocery-tracker-api-version-hash>3fd2f8d3b4d12ab54249a37225a88195def569c7</grocery-tracker-api-version-hash>
+        <grocery-tracker-api-version-hash>4993120f</grocery-tracker-api-version-hash>
         <lombok.version>1.18.12</lombok.version>
     </properties>
 
@@ -33,6 +33,14 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!--
+            Starting from Spring Boot 2.3, spring-boot-starter-validation dependency must be added explicitly to
+            get bean validation working
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -70,11 +78,6 @@
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
             <version>0.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>7.0.1.Final</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
