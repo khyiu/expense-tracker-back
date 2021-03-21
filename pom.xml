@@ -18,8 +18,9 @@
         <sonar.projectKey>khyiu_grocery-tracker-back</sonar.projectKey>
         <sonar.organization>khyiu</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <grocery-tracker-api-version-hash>4993120f</grocery-tracker-api-version-hash>
+        <grocery-tracker-api-version-hash>3272cf9e</grocery-tracker-api-version-hash>
         <lombok.version>1.18.12</lombok.version>
+        <mapstruct.version>1.4.2.Final</mapstruct.version>
     </properties>
 
     <repositories>
@@ -85,6 +86,7 @@
             <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
+
         <!-- Dependencies necessary to use DynamoDB  -->
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -170,6 +172,7 @@
                 <version>4.3.1</version>
                 <executions>
                     <execution>
+                        <id>generate-api-model</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
@@ -181,6 +184,26 @@
                                 <basePackage>be.kuritsu.gt</basePackage>
                                 <apiPackage>be.kuritsu.gt.api</apiPackage>
                                 <modelPackage>be.kuritsu.gt.model</modelPackage>
+                                <interfaceOnly>true</interfaceOnly>
+                                <skipDefaultInterface>true</skipDefaultInterface>
+                                <performBeanValidation>true</performBeanValidation>
+                                <useBeanValidation>true</useBeanValidation>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-persistence-model</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.build.directory}/persistence-entities.yaml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <configOptions>
+                                <sourceFolder>src/java/main</sourceFolder>
+                                <basePackage>be.kuritsu.gt.persistence</basePackage>
+                                <apiPackage>be.kuritsu.gt.persistence.api</apiPackage>
+                                <modelPackage>be.kuritsu.gt.persistence.model</modelPackage>
                                 <interfaceOnly>true</interfaceOnly>
                                 <skipDefaultInterface>true</skipDefaultInterface>
                                 <performBeanValidation>true</performBeanValidation>

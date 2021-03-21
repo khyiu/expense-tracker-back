@@ -28,6 +28,8 @@ public class PurchaseController implements PurchasesApi {
     @Secured("ROLE_USERS")
     @Override
     public ResponseEntity<PurchaseResponse> registerPurchase(@Valid PurchaseRequest purchaseRequest) {
+        this.purchaseService.registerPurchase(purchaseRequest);
+        // todo kyiu: finish implementation
         return null;
     }
 
