@@ -1,10 +1,10 @@
 package be.kuritsu.gt.service;
 
 import be.kuritsu.gt.model.PurchaseRequest;
+import be.kuritsu.gt.model.PurchaseResponse;
 
 public interface PurchaseService {
 
-    // todo return persisted purchase
-    void registerPurchase(PurchaseRequest purchaseRequest);
+    PurchaseResponse registerPurchase(PurchaseRequest purchaseRequest);
 
 }

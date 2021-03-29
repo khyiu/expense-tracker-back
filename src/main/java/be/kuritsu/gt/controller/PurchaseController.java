@@ -28,17 +28,8 @@ public class PurchaseController implements PurchasesApi {
     @Secured("ROLE_USERS")
     @Override
     public ResponseEntity<PurchaseResponse> registerPurchase(@Valid PurchaseRequest purchaseRequest) {
-        this.purchaseService.registerPurchase(purchaseRequest);
-        // todo kyiu: finish implementation
-        return null;
+        return new ResponseEntity<>(this.purchaseService.registerPurchase(purchaseRequest), HttpStatus.CREATED);
     }
-
-    //    @Secured("ROLE_USERS")
-//    @Override
-//    public ResponseEntity<Purchase> registerPurchase(@Valid PurchaseRequest purchaseRequest) {
-//        Purchase purchase = purchaseService.registerPurchase(purchaseRequest);
-//        return new ResponseEntity<>(purchase, HttpStatus.CREATED);
-//    }
 
 //    @CrossOrigin
 //    @Secured("ROLE_USERS")

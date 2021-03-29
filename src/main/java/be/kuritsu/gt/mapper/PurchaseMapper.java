@@ -3,7 +3,9 @@ package be.kuritsu.gt.mapper;
 import be.kuritsu.gt.model.Packaging;
 import be.kuritsu.gt.model.PurchaseItem;
 import be.kuritsu.gt.model.PurchaseRequest;
+import be.kuritsu.gt.model.PurchaseResponse;
 import be.kuritsu.gt.model.Shop;
+import be.kuritsu.gt.model.UnitMeasurement;
 import be.kuritsu.gt.persistence.model.Purchase;
 import be.kuritsu.gt.persistence.model.PurchaseItemPackaging;
 import be.kuritsu.gt.persistence.model.PurchaseItemPackagingMeasureUnit;
@@ -13,7 +15,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.List;
 
 public class PurchaseMapper {
@@ -42,9 +46,41 @@ public class PurchaseMapper {
                 .items(itemIds);
     }
 
+    public static PurchaseItem mapToPurchaseItemResponse(be.kuritsu.gt.persistence.model.PurchaseItem purchaseItem) {
+        PurchaseItemPackaging packaging = purchaseItem.getPackaging();
+        UnitMeasurement unitMeasurement = new UnitMeasurement()
+                .type(UnitMeasurement.TypeEnum.valueOf(packaging.getMeasureUnit().getType().name()))
+                .quantity(packaging.getMeasureUnit().getQuantity().intValue());
+
+        return new PurchaseItem()
+                .brand(purchaseItem.getBrand())
+                .productTags(purchaseItem.getDescriptionTags())
+                .unitPrice(purchaseItem.getUnitPrice())
+                .nbUnit(purchaseItem.getNbUnit())
+                .packaging(new Packaging()
+                        .nbUnitPerPackage(packaging.getNbUnitPerPackage())
+                        .unitMeasurements(unitMeasurement));
+    }
+
+    public static PurchaseResponse mapToPurchaseResponse(Purchase purchase, List<PurchaseItem> purchaseItems) {
+        return new PurchaseResponse()
+                .date(getPurchaseDate(purchase.getCreationTimestamp()))
+                .shop(new Shop()
+                        .name(purchase.getShop().getName())
+                        .location(purchase.getShop().getLocation()))
+                .amount(purchase.getAmount())
+                .items(purchaseItems);
+    }
+
     private static String getTimestamp(LocalDate purchaseDate) {
         LocalDateTime timestamp = LocalDateTime.of(purchaseDate, LocalTime.now());
         return Long.toString(timestamp.toEpochSecond(ZoneOffset.UTC));
+    }
+
+    private static LocalDate getPurchaseDate(String purchaseTimestamp) {
+        Date date = new Date();
+        date.setTime(Long.parseLong(purchaseTimestamp) * 1000);
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
     private static PurchaseItemPackaging mapToPackaging(Packaging packaging) {
