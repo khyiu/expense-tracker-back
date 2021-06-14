@@ -1,18 +1,22 @@
 package be.kuritsu.gt.service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
 import be.kuritsu.gt.mapper.PurchaseMapper;
+import be.kuritsu.gt.model.PurchaseItemResponse;
 import be.kuritsu.gt.model.PurchaseRequest;
 import be.kuritsu.gt.model.PurchaseResponse;
 import be.kuritsu.gt.persistence.model.Purchase;
 import be.kuritsu.gt.persistence.model.PurchaseItem;
 import be.kuritsu.gt.repository.PurchaseItemRepository;
 import be.kuritsu.gt.repository.PurchaseRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import be.kuritsu.gt.repository.SortingDirection;
 
 @Service
 public class PurchaseServiceImpl implements PurchaseService {
@@ -22,7 +26,7 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Autowired
     public PurchaseServiceImpl(PurchaseRepository purchaseRepository,
-                               PurchaseItemRepository purchaseItemRepository) {
+            PurchaseItemRepository purchaseItemRepository) {
         this.purchaseRepository = purchaseRepository;
         this.purchaseItemRepository = purchaseItemRepository;
     }
@@ -42,9 +46,39 @@ public class PurchaseServiceImpl implements PurchaseService {
         Purchase purchase = PurchaseMapper.mapToPurchase(purchaseRequest, ownr, purchaseItemIds);
         purchaseRepository.save(purchase);
 
-        List<be.kuritsu.gt.model.PurchaseItem> purchaseItemResponses = purchaseItems.stream()
+        List<PurchaseItemResponse> purchaseItemResponses = purchaseItems.stream()
                 .map(PurchaseMapper::mapToPurchaseItemResponse)
                 .collect(Collectors.toList());
         return PurchaseMapper.mapToPurchaseResponse(purchase, purchaseItemResponses);
+    }
+
+    @Override
+    public List<PurchaseResponse> fetchPurchases(Integer pageSize, SortingDirection sortDirection, Integer exclusiveBoundKey) {
+        String ownr = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<Purchase> purchases = purchaseRepository.findPurchases(ownr, pageSize, sortDirection, exclusiveBoundKey);
+        List<String> purchaseItemsCreationTimestamps = purchases.stream()
+                .flatMap(purchase -> purchase.getItems().stream())
+                .sorted()
+                .collect(Collectors.toList());
+        Map<String, PurchaseItem> purchaseItems = purchaseItemRepository.getPurchaseItems(ownr, purchaseItemsCreationTimestamps)
+                .stream()
+                .collect(Collectors.toMap(PurchaseItem::getCreationTimestamp, item -> item));
+
+        return purchases.stream()
+                .map(purchase -> {
+                    List<PurchaseItem> associatedPurchaseItems = purchaseItems.entrySet()
+                            .stream()
+                            .filter(entry -> purchase.getItems().contains(entry.getKey()))
+                            .map(Map.Entry::getValue)
+                            .collect(Collectors.toList());
+
+                    List<PurchaseItemResponse> purchaseItemResponses = associatedPurchaseItems
+                            .stream()
+                            .map(PurchaseMapper::mapToPurchaseItemResponse)
+                            .collect(Collectors.toList());
+
+                    return PurchaseMapper.mapToPurchaseResponse(purchase, purchaseItemResponses);
+                })
+                .collect(Collectors.toList());
     }
 }

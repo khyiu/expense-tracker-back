@@ -1,16 +1,5 @@
 package be.kuritsu.gt.mapper;
 
-import be.kuritsu.gt.model.Packaging;
-import be.kuritsu.gt.model.PurchaseItem;
-import be.kuritsu.gt.model.PurchaseRequest;
-import be.kuritsu.gt.model.PurchaseResponse;
-import be.kuritsu.gt.model.Shop;
-import be.kuritsu.gt.model.UnitMeasurement;
-import be.kuritsu.gt.persistence.model.Purchase;
-import be.kuritsu.gt.persistence.model.PurchaseItemPackaging;
-import be.kuritsu.gt.persistence.model.PurchaseItemPackagingMeasureUnit;
-import be.kuritsu.gt.persistence.model.PurchaseShop;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +8,18 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
+
+import be.kuritsu.gt.model.Packaging;
+import be.kuritsu.gt.model.PurchaseItem;
+import be.kuritsu.gt.model.PurchaseItemResponse;
+import be.kuritsu.gt.model.PurchaseRequest;
+import be.kuritsu.gt.model.PurchaseResponse;
+import be.kuritsu.gt.model.Shop;
+import be.kuritsu.gt.model.UnitMeasurement;
+import be.kuritsu.gt.persistence.model.Purchase;
+import be.kuritsu.gt.persistence.model.PurchaseItemPackaging;
+import be.kuritsu.gt.persistence.model.PurchaseItemPackagingMeasureUnit;
+import be.kuritsu.gt.persistence.model.PurchaseShop;
 
 public class PurchaseMapper {
 
@@ -46,13 +47,14 @@ public class PurchaseMapper {
                 .items(itemIds);
     }
 
-    public static PurchaseItem mapToPurchaseItemResponse(be.kuritsu.gt.persistence.model.PurchaseItem purchaseItem) {
+    public static PurchaseItemResponse mapToPurchaseItemResponse(be.kuritsu.gt.persistence.model.PurchaseItem purchaseItem) {
         PurchaseItemPackaging packaging = purchaseItem.getPackaging();
         UnitMeasurement unitMeasurement = new UnitMeasurement()
                 .type(UnitMeasurement.TypeEnum.valueOf(packaging.getMeasureUnit().getType().name()))
                 .quantity(packaging.getMeasureUnit().getQuantity().intValue());
 
-        return new PurchaseItem()
+        return new PurchaseItemResponse()
+                .id(Integer.parseInt(purchaseItem.getCreationTimestamp()))
                 .brand(purchaseItem.getBrand())
                 .productTags(purchaseItem.getDescriptionTags())
                 .unitPrice(purchaseItem.getUnitPrice())
@@ -62,8 +64,9 @@ public class PurchaseMapper {
                         .unitMeasurements(unitMeasurement));
     }
 
-    public static PurchaseResponse mapToPurchaseResponse(Purchase purchase, List<PurchaseItem> purchaseItems) {
+    public static PurchaseResponse mapToPurchaseResponse(Purchase purchase, List<PurchaseItemResponse> purchaseItems) {
         return new PurchaseResponse()
+                .id(Integer.parseInt(purchase.getCreationTimestamp()))
                 .date(getPurchaseDate(purchase.getCreationTimestamp()))
                 .shop(new Shop()
                         .name(purchase.getShop().getName())
