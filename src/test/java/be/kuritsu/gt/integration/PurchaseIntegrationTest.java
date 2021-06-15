@@ -150,4 +150,17 @@ public class PurchaseIntegrationTest {
 
         assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
     }
+
+    @Test
+    @WithMockUser(roles = "GUESTS", username = TEST_USERNAME)
+    public void test_fetch_purchases_unauthorized_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(get("/purchases")
+                        .contentType("application/json")
+                        .queryParam("pageSize", "3")
+                        .queryParam("sortDirection", "DESC")
+                        .queryParam("exclusiveBoundKey", "123456")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
+    }
 }
