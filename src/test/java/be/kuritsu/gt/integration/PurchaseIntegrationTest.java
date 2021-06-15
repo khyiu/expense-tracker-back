@@ -2,21 +2,32 @@ package be.kuritsu.gt.integration;
 
 import static be.kuritsu.gt.integration.TestDataFactory.getDefaultPurchaseRequest;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import be.kuritsu.gt.Application;
 import be.kuritsu.gt.model.PurchaseRequest;
 import be.kuritsu.gt.model.PurchaseResponse;
 import be.kuritsu.gt.model.UnitMeasurement;
+import be.kuritsu.gt.repository.PurchaseItemRepositoryImpl;
+import be.kuritsu.gt.repository.PurchaseRepositoryImpl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +50,7 @@ import org.springframework.web.context.WebApplicationContext;
 })
 public class PurchaseIntegrationTest {
 
+    private static final String TEST_USERNAME = "ron_swanson";
     private MockMvc mockMvc;
 
     @Autowired
@@ -54,6 +66,12 @@ public class PurchaseIntegrationTest {
     public void setup() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
                 .build();
+    }
+
+    @After
+    public void cleanupTestData() {
+        IntegrationTestUtils.cleanupTestData(amazonDynamoDB, PurchaseRepositoryImpl.TABLE_PURCHASE, TEST_USERNAME);
+        IntegrationTestUtils.cleanupTestData(amazonDynamoDB, PurchaseItemRepositoryImpl.TABLE_PURCHASE_ITEM, TEST_USERNAME);
     }
 
     @Test
@@ -80,7 +98,7 @@ public class PurchaseIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "USERS", username = "ron_swanson")
+    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
     public void test_register_purchase() throws Exception {
         MvcResult mvcResult = mockMvc.perform(post("/purchases")
                 .contentType("application/json")
@@ -110,7 +128,7 @@ public class PurchaseIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "USERS", username = "ron_swanson")
+    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
     public void test_register_purchase_invalid_request() throws Exception {
         PurchaseRequest purchaseRequest = getDefaultPurchaseRequest();
         purchaseRequest.setAmount(null);
@@ -121,4 +139,15 @@ public class PurchaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    public void test_fetch_purchases_unauthenticated_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(get("/purchases")
+                        .contentType("application/json")
+                        .queryParam("pageSize", "3")
+                        .queryParam("sortDirection", "DESC")
+                        .queryParam("exclusiveBoundKey", "123456")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
+    }
 }

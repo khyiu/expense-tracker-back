@@ -23,7 +23,7 @@ import com.amazonaws.services.dynamodbv2.model.QueryResult;
 @Repository
 public class PurchaseRepositoryImpl implements PurchaseRepository {
 
-    private static final String TABLE_PURCHASE = "Purchase";
+    public static final String TABLE_PURCHASE = "Purchase";
     private static final String ATTRIBUTE_CREATION_TIMESTAMP = "creationTimestamp";
 
     private final AmazonDynamoDB amazonDynamoDB;

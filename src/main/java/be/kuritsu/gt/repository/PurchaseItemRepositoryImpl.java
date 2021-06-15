@@ -22,7 +22,7 @@ import com.amazonaws.services.dynamodbv2.model.QueryResult;
 @Repository
 public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
 
-    private static final String TABLE_PURCHASE_ITEM = "PurchaseItem";
+    public static final String TABLE_PURCHASE_ITEM = "PurchaseItem";
     private static final String ATTRIBUTE_CREATION_TIMESTAMP = "creationTimestamp";
     private static final String PARTITION_KEY_NAME = "#partitionKeyName";
     private static final String PARTITION_KEY_VALUE = ":partitionKeyValue";
@@ -87,7 +87,7 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
     private static Map<String, AttributeValue> getPurchaseItemAttributeValue(PurchaseItem purchaseItem) {
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("ownr", new AttributeValue(purchaseItem.getOwnr()));
-        item.put(ATTRIBUTE_CREATION_TIMESTAMP, new AttributeValue(purchaseItem.getCreationTimestamp()));
+        item.put(ATTRIBUTE_CREATION_TIMESTAMP, new AttributeValue().withN(purchaseItem.getCreationTimestamp()));
         item.put("brand", new AttributeValue(purchaseItem.getBrand()));
         item.put("descriptionTags", new AttributeValue().withSS(purchaseItem.getDescriptionTags()));
         item.put("unitPrice", new AttributeValue().withN(purchaseItem.getUnitPrice().toString()));
