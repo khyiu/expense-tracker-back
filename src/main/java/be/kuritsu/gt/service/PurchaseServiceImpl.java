@@ -1,5 +1,6 @@
 package be.kuritsu.gt.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -60,9 +61,11 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .flatMap(purchase -> purchase.getItems().stream())
                 .sorted()
                 .collect(Collectors.toList());
-        Map<String, PurchaseItem> purchaseItems = purchaseItemRepository.getPurchaseItems(ownr, purchaseItemsCreationTimestamps)
-                .stream()
-                .collect(Collectors.toMap(PurchaseItem::getCreationTimestamp, item -> item));
+        Map<String, PurchaseItem> purchaseItems = purchaseItemsCreationTimestamps.isEmpty() ?
+                Collections.emptyMap() :
+                purchaseItemRepository.getPurchaseItems(ownr, purchaseItemsCreationTimestamps)
+                        .stream()
+                        .collect(Collectors.toMap(PurchaseItem::getCreationTimestamp, item -> item));
 
         return purchases.stream()
                 .map(purchase -> {
