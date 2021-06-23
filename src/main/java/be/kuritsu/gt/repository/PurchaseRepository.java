@@ -11,4 +11,6 @@ public interface PurchaseRepository {
     void save(Purchase purchase);
 
     List<Purchase> findPurchases(String owrn, int pageSize, SortingDirection sortingDirection, @CheckForNull Integer exclusiveBoundKey);
+
+    Purchase getPurchase(String ownr, Integer creationTimestamp);
 }

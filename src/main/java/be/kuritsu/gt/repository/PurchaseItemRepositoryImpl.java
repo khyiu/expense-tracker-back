@@ -72,8 +72,8 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
     private static Map<String, AttributeValue> getExpressionAttributeValues(String ownr, String sortingRangeStart, String sortingRangeEnd) {
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
         expressionAttributeValues.put(PARTITION_KEY_VALUE, new AttributeValue(ownr));
-        expressionAttributeValues.put(SORTING_KEY_RANGE_START_VALUE, new AttributeValue(sortingRangeStart));
-        expressionAttributeValues.put(SORTING_KEY_RANGE_END_VALUE, new AttributeValue(sortingRangeEnd));
+        expressionAttributeValues.put(SORTING_KEY_RANGE_START_VALUE, new AttributeValue().withN(sortingRangeStart));
+        expressionAttributeValues.put(SORTING_KEY_RANGE_END_VALUE, new AttributeValue().withN(sortingRangeEnd));
         return expressionAttributeValues;
     }
 
@@ -112,7 +112,7 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
 
     private static PurchaseItem toPurchaseItem(Map<String, AttributeValue> purchaseItemAttributeValues) {
         return new PurchaseItem()
-                .creationTimestamp(purchaseItemAttributeValues.get(ATTRIBUTE_CREATION_TIMESTAMP).getS())
+                .creationTimestamp(purchaseItemAttributeValues.get(ATTRIBUTE_CREATION_TIMESTAMP).getN())
                 .brand(purchaseItemAttributeValues.get("brand").getS())
                 .descriptionTags(purchaseItemAttributeValues.get("descriptionTags").getSS())
                 .unitPrice(BigDecimal.valueOf(Double.parseDouble(purchaseItemAttributeValues.get("unitPrice").getN())))

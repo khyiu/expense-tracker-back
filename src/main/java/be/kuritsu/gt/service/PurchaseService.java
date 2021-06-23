@@ -12,4 +12,8 @@ public interface PurchaseService {
     PurchaseResponse registerPurchase(PurchaseRequest purchaseRequest);
 
     List<PurchaseResponse> fetchPurchases(Integer pageSize, SortingDirection sortDirection, Integer exclusiveBoundKey);
+
+    void deletePurchase(Integer creationTimestamp);
+
+    PurchaseResponse getPurchase(Integer creationTimestamp);
 }

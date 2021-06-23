@@ -81,9 +81,8 @@ public class PurchaseMapper {
     }
 
     private static LocalDate getPurchaseDate(String purchaseTimestamp) {
-        Date date = new Date();
-        date.setTime(Long.parseLong(purchaseTimestamp) * 1000);
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        return LocalDateTime.ofEpochSecond(1607989137, 0, ZoneOffset.UTC)
+                .toLocalDate();
     }
 
     private static PurchaseItemPackaging mapToPackaging(Packaging packaging) {

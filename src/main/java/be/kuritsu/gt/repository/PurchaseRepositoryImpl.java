@@ -11,11 +11,14 @@ import javax.annotation.CheckForNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import be.kuritsu.gt.exception.PurchaseNotFoundException;
 import be.kuritsu.gt.persistence.model.Purchase;
 import be.kuritsu.gt.persistence.model.PurchaseShop;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
+import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryResult;
@@ -25,6 +28,7 @@ public class PurchaseRepositoryImpl implements PurchaseRepository {
 
     public static final String TABLE_PURCHASE = "Purchase";
     private static final String ATTRIBUTE_CREATION_TIMESTAMP = "creationTimestamp";
+    private static final String ATTRIBUTE_OWNR = "ownr";
 
     private final AmazonDynamoDB amazonDynamoDB;
 
@@ -48,7 +52,7 @@ public class PurchaseRepositoryImpl implements PurchaseRepository {
 
     private static Map<String, AttributeValue> getPurchaseAttributeValue(Purchase purchase) {
         Map<String, AttributeValue> item = new HashMap<>();
-        item.put("ownr", new AttributeValue(purchase.getOwnr()));
+        item.put(ATTRIBUTE_OWNR, new AttributeValue(purchase.getOwnr()));
         item.put(ATTRIBUTE_CREATION_TIMESTAMP, new AttributeValue().withN(purchase.getCreationTimestamp()));
         item.put("shop", new AttributeValue().withM(getShopAttributeValue(purchase.getShop())));
         item.put("amount", new AttributeValue().withN(purchase.getAmount().toString()));
@@ -92,7 +96,7 @@ public class PurchaseRepositoryImpl implements PurchaseRepository {
 
     private static Map<String, String> getExpressionAttributeNames() {
         Map<String, String> expressionAttributeNames = new HashMap<>();
-        expressionAttributeNames.put("#partitionAttributeName", "ownr");
+        expressionAttributeNames.put("#partitionAttributeName", ATTRIBUTE_OWNR);
         return expressionAttributeNames;
     }
 
@@ -104,7 +108,7 @@ public class PurchaseRepositoryImpl implements PurchaseRepository {
 
     private static Map<String, AttributeValue> getExclusiveStartKey(String ownr, Integer exclusiveBoundKey) {
         Map<String, AttributeValue> key = new HashMap<>();
-        key.put("ownr", new AttributeValue(ownr));
+        key.put(ATTRIBUTE_OWNR, new AttributeValue(ownr));
         key.put(ATTRIBUTE_CREATION_TIMESTAMP, new AttributeValue().withN(exclusiveBoundKey.toString()));
         return key;
     }
@@ -121,5 +125,23 @@ public class PurchaseRepositoryImpl implements PurchaseRepository {
         return new PurchaseShop()
                 .name(shopAttributeValues.get("name").getS())
                 .location(shopAttributeValues.get("location").getS());
+    }
+
+    @Override
+    public Purchase getPurchase(String ownr, Integer creationTimestamp) {
+        GetItemRequest getItemRequest = new GetItemRequest();
+        getItemRequest.setTableName(TABLE_PURCHASE);
+
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put(ATTRIBUTE_OWNR, new AttributeValue(ownr));
+        key.put(ATTRIBUTE_CREATION_TIMESTAMP, new AttributeValue().withN(creationTimestamp.toString()));
+        getItemRequest.setKey(key);
+        GetItemResult result = amazonDynamoDB.getItem(getItemRequest);
+
+        if (result.getItem() == null) {
+            throw new PurchaseNotFoundException();
+        }
+
+        return toPurchase(result.getItem());
     }
 }

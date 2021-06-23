@@ -41,4 +41,16 @@ public class PurchaseController implements PurchasesApi {
         return ResponseEntity.ok(this.purchaseService.fetchPurchases(pageSize, sortDir, exclusiveBoundKey));
     }
 
+    @Secured("ROLE_USERS")
+    @Override
+    public ResponseEntity<Void> deletePurchase(Integer creationTimestamp) {
+        purchaseService.deletePurchase(creationTimestamp);
+        return ResponseEntity.ok().build();
+    }
+
+    @Secured("ROLE_USERS")
+    @Override
+    public ResponseEntity<PurchaseResponse> getPurchase(Integer creationTimestamp) {
+        return ResponseEntity.ok(purchaseService.getPurchase(creationTimestamp));
+    }
 }

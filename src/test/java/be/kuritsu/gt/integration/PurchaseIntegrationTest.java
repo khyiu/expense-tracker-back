@@ -170,4 +170,69 @@ public class PurchaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
     }
+
+    @Test
+    public void test_get_purchase_unauthenticated_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(get("/purchases/123456")
+                        .contentType("application/json")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "GUESTS", username = TEST_USERNAME)
+    public void test_get_purchase_unauthorized_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(get("/purchases/123456")
+                        .contentType("application/json")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
+    public void test_get_purchase_not_found() throws Exception {
+        mockMvc.perform(get("/purchases/123456")
+                .contentType("application/json"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
+    public void test_get_purchase() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(post("/purchases")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(getDefaultPurchaseRequest())))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String jsonResponse = mvcResult.getResponse().getContentAsString();
+        PurchaseResponse createdPurchaseResponse = objectMapper.readValue(jsonResponse, PurchaseResponse.class);
+
+        mvcResult = mockMvc.perform(get("/purchases/{creationTimestamp}", createdPurchaseResponse.getId().toString())
+                .contentType("application/json"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        jsonResponse = mvcResult.getResponse().getContentAsString();
+        PurchaseResponse fetchedPurchaseResponse = objectMapper.readValue(jsonResponse, PurchaseResponse.class);
+        assertThat(fetchedPurchaseResponse.getId()).isNotNull();
+        assertThat(fetchedPurchaseResponse.getDate()).isEqualTo(LocalDate.of(2020, 12, 14));
+        assertThat(fetchedPurchaseResponse.getShop().getName()).isEqualTo("Provigo");
+        assertThat(fetchedPurchaseResponse.getShop().getLocation()).isEqualTo("Montreal");
+        assertThat(fetchedPurchaseResponse.getAmount()).isEqualTo(BigDecimal.valueOf(27.15));
+        assertThat(fetchedPurchaseResponse.getItems()).hasSize(1);
+        assertThat(fetchedPurchaseResponse.getItems()).anySatisfy(purchaseItemResponse -> {
+            assertThat(purchaseItemResponse.getId()).isNotNull();
+            assertThat(purchaseItemResponse.getBrand()).isEqualTo("Ben & Jerry's");
+            assertThat(purchaseItemResponse.getProductTags()).hasSize(1);
+            assertThat(purchaseItemResponse.getProductTags()).contains("ice cream");
+            assertThat(purchaseItemResponse.getUnitPrice()).isEqualByComparingTo(BigDecimal.valueOf(9.05));
+            assertThat(purchaseItemResponse.getNbUnit()).isEqualTo(3);
+            assertThat(purchaseItemResponse.getPackaging().getNbUnitPerPackage()).isEqualTo(1);
+            assertThat(purchaseItemResponse.getPackaging().getUnitMeasurements().getQuantity()).isEqualTo(465);
+            assertThat(purchaseItemResponse.getPackaging().getUnitMeasurements().getType()).isEqualTo(UnitMeasurement.TypeEnum.ML);
+        });
+    }
 }

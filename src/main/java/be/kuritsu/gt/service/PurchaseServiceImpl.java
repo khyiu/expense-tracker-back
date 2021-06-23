@@ -84,4 +84,21 @@ public class PurchaseServiceImpl implements PurchaseService {
                 })
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void deletePurchase(Integer creationTimestamp) {
+        // todo kyiu implement
+        String ownr = SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+    @Override
+    public PurchaseResponse getPurchase(Integer creationTimestamp) {
+        String ownr = SecurityContextHolder.getContext().getAuthentication().getName();
+        Purchase purchase = purchaseRepository.getPurchase(ownr, creationTimestamp);
+        List<PurchaseItemResponse> purchaseItemResponses = purchaseItemRepository.getPurchaseItems(ownr, purchase.getItems())
+                .stream()
+                .map(PurchaseMapper::mapToPurchaseItemResponse)
+                .collect(Collectors.toList());
+        return PurchaseMapper.mapToPurchaseResponse(purchase, purchaseItemResponses);
+    }
 }
