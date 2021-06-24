@@ -79,7 +79,7 @@ public class PurchaseMapper {
     }
 
     private static LocalDate getPurchaseDate(String purchaseTimestamp) {
-        return LocalDateTime.ofEpochSecond(1607989137, 0, ZoneOffset.UTC)
+        return LocalDateTime.ofEpochSecond(Integer.parseInt(purchaseTimestamp), 0, ZoneOffset.UTC)
                 .toLocalDate();
     }
 
