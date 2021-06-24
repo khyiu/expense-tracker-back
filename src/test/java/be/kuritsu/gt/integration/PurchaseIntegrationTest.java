@@ -2,8 +2,7 @@ package be.kuritsu.gt.integration;
 
 import static be.kuritsu.gt.integration.TestDataFactory.getDefaultPurchaseRequest;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -234,5 +233,62 @@ public class PurchaseIntegrationTest {
             assertThat(purchaseItemResponse.getPackaging().getUnitMeasurements().getQuantity()).isEqualTo(465);
             assertThat(purchaseItemResponse.getPackaging().getUnitMeasurements().getType()).isEqualTo(UnitMeasurement.TypeEnum.ML);
         });
+    }
+
+    @Test
+    public void test_delete_purchase_unauthenticated_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(delete("/purchases/123456")
+                        .contentType("application/json")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "GUESTS", username = TEST_USERNAME)
+    public void test_delete_purchase_unauthorized_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(delete("/purchases/123456")
+                        .contentType("application/json")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
+    public void test_delete_purchase_not_found() throws Exception {
+        mockMvc.perform(delete("/purchases/123456")
+                .contentType("application/json"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
+    public void test_delete_purchase() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(post("/purchases")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(getDefaultPurchaseRequest())))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String jsonResponse = mvcResult.getResponse().getContentAsString();
+        PurchaseResponse createdPurchaseResponse = objectMapper.readValue(jsonResponse, PurchaseResponse.class);
+
+        mvcResult = mockMvc.perform(get("/purchases/{creationTimestamp}", createdPurchaseResponse.getId().toString())
+                .contentType("application/json"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        jsonResponse = mvcResult.getResponse().getContentAsString();
+        PurchaseResponse fetchedPurchaseResponse = objectMapper.readValue(jsonResponse, PurchaseResponse.class);
+        assertThat(fetchedPurchaseResponse.getItems()).hasSize(1);
+
+        mockMvc.perform(delete("/purchases/{creationTimestamp}", fetchedPurchaseResponse.getId().toString())
+                .contentType("application/json"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/purchases/{creationTimestamp}", createdPurchaseResponse.getId().toString())
+                .contentType("application/json"))
+                .andExpect(status().isNotFound());
     }
 }

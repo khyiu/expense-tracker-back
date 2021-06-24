@@ -9,4 +9,6 @@ public interface PurchaseItemRepository {
     void saveAll(List<PurchaseItem> purchaseItems);
 
     List<PurchaseItem> getPurchaseItems(String ownr, List<String> creationTimestamps);
+
+    void delete(String ownr, Integer creationTimestamp);
 }

@@ -13,4 +13,6 @@ public interface PurchaseRepository {
     List<Purchase> findPurchases(String owrn, int pageSize, SortingDirection sortingDirection, @CheckForNull Integer exclusiveBoundKey);
 
     Purchase getPurchase(String ownr, Integer creationTimestamp);
+
+    void delete(String ownr, Integer creationTimestamp);
 }

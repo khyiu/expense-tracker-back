@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import be.kuritsu.gt.exception.PurchaseNotFoundException;
 import be.kuritsu.gt.mapper.PurchaseMapper;
 import be.kuritsu.gt.model.PurchaseItemResponse;
 import be.kuritsu.gt.model.PurchaseRequest;
@@ -87,8 +88,12 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public void deletePurchase(Integer creationTimestamp) {
-        // todo kyiu implement
         String ownr = SecurityContextHolder.getContext().getAuthentication().getName();
+        Purchase purchase = purchaseRepository.getPurchase(ownr, creationTimestamp);
+
+        purchaseRepository.delete(ownr, Integer.parseInt(purchase.getCreationTimestamp()));
+        purchase.getItems()
+                .forEach(itemCreationTimestamp -> purchaseItemRepository.delete(ownr, Integer.parseInt(itemCreationTimestamp)));
     }
 
     @Override

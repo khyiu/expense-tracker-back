@@ -17,6 +17,7 @@ import be.kuritsu.gt.persistence.model.PurchaseShop;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
@@ -143,5 +144,18 @@ public class PurchaseRepositoryImpl implements PurchaseRepository {
         }
 
         return toPurchase(result.getItem());
+    }
+
+    @Override
+    public void delete(String ownr, Integer creationTimestamp) {
+        DeleteItemRequest deleteItemRequest = new DeleteItemRequest();
+        deleteItemRequest.setTableName(TABLE_PURCHASE);
+
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put(ATTRIBUTE_OWNR, new AttributeValue(ownr));
+        key.put(ATTRIBUTE_CREATION_TIMESTAMP, new AttributeValue().withN(creationTimestamp.toString()));
+        deleteItemRequest.setKey(key);
+
+        amazonDynamoDB.deleteItem(deleteItemRequest);
     }
 }

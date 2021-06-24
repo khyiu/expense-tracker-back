@@ -15,6 +15,7 @@ import be.kuritsu.gt.persistence.model.PurchaseItemPackagingMeasureUnit;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryResult;
@@ -29,6 +30,7 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
     private static final String SORTING_KEY_NAME = "#sortingKeyName";
     private static final String SORTING_KEY_RANGE_START_VALUE = ":sortingKeyRangeStartValue";
     private static final String SORTING_KEY_RANGE_END_VALUE = ":sortingKeyRangeEndValue";
+    private static final String ATTRIBUTE_OWRN = "ownr";
 
     private final AmazonDynamoDB amazonDynamoDB;
 
@@ -64,7 +66,7 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
 
     private static Map<String, String> getPurchaseItemsAttributeValue() {
         Map<String, String> expressionAttributeNames = new HashMap<>();
-        expressionAttributeNames.put(PARTITION_KEY_NAME, "ownr");
+        expressionAttributeNames.put(PARTITION_KEY_NAME, ATTRIBUTE_OWRN);
         expressionAttributeNames.put(SORTING_KEY_NAME, ATTRIBUTE_CREATION_TIMESTAMP);
         return expressionAttributeNames;
     }
@@ -86,7 +88,7 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
 
     private static Map<String, AttributeValue> getPurchaseItemAttributeValue(PurchaseItem purchaseItem) {
         Map<String, AttributeValue> item = new HashMap<>();
-        item.put("ownr", new AttributeValue(purchaseItem.getOwnr()));
+        item.put(ATTRIBUTE_OWRN, new AttributeValue(purchaseItem.getOwnr()));
         item.put(ATTRIBUTE_CREATION_TIMESTAMP, new AttributeValue().withN(purchaseItem.getCreationTimestamp()));
         item.put("brand", new AttributeValue(purchaseItem.getBrand()));
         item.put("descriptionTags", new AttributeValue().withSS(purchaseItem.getDescriptionTags()));
@@ -129,5 +131,18 @@ public class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
                                 .quantity(BigDecimal.valueOf(Integer.parseInt(measureUnitAttributeValues.get("quantity").getN())))
                                 .type(PurchaseItemPackagingMeasureUnit.TypeEnum.fromValue(measureUnitAttributeValues.get("type").getS()))
                 );
+    }
+
+    @Override
+    public void delete(String ownr, Integer creationTimestamp) {
+        DeleteItemRequest deleteItemRequest = new DeleteItemRequest();
+        deleteItemRequest.setTableName(TABLE_PURCHASE_ITEM);
+
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put(ATTRIBUTE_OWRN, new AttributeValue(ownr));
+        key.put(ATTRIBUTE_CREATION_TIMESTAMP, new AttributeValue().withN(creationTimestamp.toString()));
+        deleteItemRequest.setKey(key);
+
+        amazonDynamoDB.deleteItem(deleteItemRequest);
     }
 }
