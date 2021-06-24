@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import be.kuritsu.gt.exception.PurchaseNotFoundException;
 import be.kuritsu.gt.mapper.PurchaseMapper;
 import be.kuritsu.gt.model.PurchaseItemResponse;
 import be.kuritsu.gt.model.PurchaseRequest;
