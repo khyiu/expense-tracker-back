@@ -25,12 +25,12 @@ public class IntegrationTestUtils {
         ScanResult scanResult = amazonDynamoDB.scan(scanRequest);
 
         scanResult.getItems().forEach(item -> {
-            String creationTimestamp = item.get("creationTimestamp").getN();
+            String creationTimestamp = item.get("timestamp").getN();
 
             DeleteItemRequest deleteItemRequest = new DeleteItemRequest();
             Map<String, AttributeValue> key = new HashMap<>();
             key.put("ownr", new AttributeValue(owner));
-            key.put("creationTimestamp", new AttributeValue().withN(creationTimestamp));
+            key.put("timestamp", new AttributeValue().withN(creationTimestamp));
             deleteItemRequest.setTableName(tableName);
             deleteItemRequest.setKey(key);
             amazonDynamoDB.deleteItem(deleteItemRequest);

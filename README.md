@@ -1,15 +1,7 @@
-# grocery-tracker-back
+# expense-tracker-back
 This is a personal project that I'll use to get familiar with tools and techniques I've wanted to explore for a while.  
 
-Functionally-speaking, I've chosen to implement an application that (normally) doesn't hold much complexity, so that I 
-could focus on exploring technical matters.  
-
-Basically, **"Grocery tracker"** is an application in which I'll register the things I bought during grocery shopping 
-and their price. Over time, the application would, then, be able to refine an average price for everything I would buy 
-on a regular basis. Based on this average price, I could then know if I'm spending more or less than usual for a same 
-article. 
-
-SonarCloud status: [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=khyiu_grocery-tracker-back&metric=alert_status)](https://sonarcloud.io/dashboard?id=khyiu_grocery-tracker-back)
+SonarCloud status: [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=khyiu_expense-tracker-back&metric=alert_status)](https://sonarcloud.io/dashboard?id=khyiu_expense-tracker-back)
 
 # Journey log
 ## Stage 1: CI/CD server
@@ -59,7 +51,7 @@ The setup was super easy. You only need to authorize Sonarcloud to get access to
 Github as my SCM), and select the project you want to be analyzed.  
 To trigger a Sonarcloud analysis every time my project is built, I had to:
 * add a couple of properties to my _pom.xml_ to idenfity my Sonar project  
-`		<sonar.projectKey>khyiu_grocery-tracker-back</sonar.projectKey>
+`		<sonar.projectKey>khyiu_expense-tracker-back</sonar.projectKey>
  		<sonar.organization>khyiu</sonar.organization>
  		<sonar.host.url>https://sonarcloud.io</sonar.host.url>`  
  		Those could be copied from Sonarcloud -> super user friendly
@@ -99,7 +91,7 @@ Eventually, I switched my app to new EB environment that is using Java 8 on Amaz
 support HTTPS.
 
 ## Stage 4: IAM using AWS Cognito
-1. create a Cognito user pool dedicated to Grocery tracker app (:exclamation: don't forget that Cognito only support HTTPS 
+1. create a Cognito user pool dedicated to Expense tracker app (:exclamation: don't forget that Cognito only support HTTPS 
 callback URL -> the application has been configured with SSL enabled)
 1. Define a Spring configuration class that enables web security:
     - `OAuth2SecurityConfig` extending `WebSecurityConfigurerAdapter` and annotated with `@EnableWebSecurity`
