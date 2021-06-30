@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import be.kuritsu.gt.api.ExpensesApi;
 import be.kuritsu.gt.mapper.ExpenseMapper;
 import be.kuritsu.gt.model.ExpenseRequest;
 import be.kuritsu.gt.model.ExpenseResponse;
@@ -26,6 +25,13 @@ public class ExpenseServiceImpl implements ExpenseService {
         String ownr = SecurityContextHolder.getContext().getAuthentication().getName();
         ExpenseEntity expenseEntity = ExpenseMapper.toExpenseEntity(ownr, expense);
         expenseRepository.save(expenseEntity);
+        return ExpenseMapper.toExpenseResponse(expenseEntity);
+    }
+
+    @Override
+    public ExpenseResponse getExpense(String id) {
+        String ownr = SecurityContextHolder.getContext().getAuthentication().getName();
+        ExpenseEntity expenseEntity = expenseRepository.getExpense(ownr, id);
         return ExpenseMapper.toExpenseResponse(expenseEntity);
     }
 
@@ -71,14 +77,5 @@ public class ExpenseServiceImpl implements ExpenseService {
     //                .forEach(itemCreationTimestamp -> purchaseItemRepository.delete(ownr, Integer.parseInt(itemCreationTimestamp)));
     //    }
     //
-    //    @Override
-    //    public PurchaseResponse getPurchase(Integer creationTimestamp) {
-    //        String ownr = SecurityContextHolder.getContext().getAuthentication().getName();
-    //        Purchase purchase = purchaseRepository.getPurchase(ownr, creationTimestamp);
-    //        List<PurchaseItemResponse> purchaseItemResponses = purchaseItemRepository.getPurchaseItems(ownr, purchase.getItems())
-    //                .stream()
-    //                .map(PurchaseMapper::mapToPurchaseItemResponse)
-    //                .collect(Collectors.toList());
-    //        return PurchaseMapper.mapToPurchaseResponse(purchase, purchaseItemResponses);
-    //    }
+
 }

@@ -35,10 +35,10 @@ public class ExpenseController implements ExpensesApi {
         return null;
     }
 
+    @Secured("ROLE_USERS")
     @Override
     public ResponseEntity<ExpenseResponse> getExpense(String id) {
-        // todo kyiu: implement
-        return null;
+        return ResponseEntity.ok(expenseService.getExpense(id));
     }
 
     @Secured("ROLE_USERS")

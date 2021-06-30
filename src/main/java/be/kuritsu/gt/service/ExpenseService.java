@@ -7,9 +7,9 @@ public interface ExpenseService {
 
     ExpenseResponse registerExpense(ExpenseRequest expenseRequest);
 
+    ExpenseResponse getExpense(String id);
+
     //    List<PurchaseResponse> fetchPurchases(Integer pageSize, SortingDirection sortDirection, Integer exclusiveBoundKey);
     //
     //    void deletePurchase(Integer creationTimestamp);
-    //
-    //    PurchaseResponse getPurchase(Integer creationTimestamp);
 }

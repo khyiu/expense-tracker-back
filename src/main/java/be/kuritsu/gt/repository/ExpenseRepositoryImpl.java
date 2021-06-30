@@ -1,19 +1,21 @@
 package be.kuritsu.gt.repository;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import be.kuritsu.gt.exception.ExpenseNotFoundException;
 import be.kuritsu.gt.persistence.model.ExpenseEntity;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
+import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 
 @Repository
@@ -55,11 +57,7 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
         item.put(ATTRIBUTE_TIMESTAMP, new AttributeValue().withN(expense.getTimestamp()));
         item.put(ATTRIBUTE_DATE, new AttributeValue(expense.getDate().format(DateTimeFormatter.ISO_DATE)));
         item.put(ATTRIBUTE_AMOUNT, new AttributeValue().withN(expense.getAmount().toString()));
-
-        if (expense.getTags() != null) {
-            item.put(ATTRIBUTE_TAGS, new AttributeValue().withSS(expense.getTags()));
-        }
-
+        item.put(ATTRIBUTE_TAGS, new AttributeValue().withSS(expense.getTags()));
         item.put(ATTRIBUTE_DESCRIPTION, new AttributeValue(expense.getDescription()));
 
         if (expense.getCreditCard() != null) {
@@ -71,6 +69,39 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
         }
 
         return item;
+    }
+
+    @Override
+    public ExpenseEntity getExpense(String ownr, String id) {
+        GetItemRequest getItemRequest = new GetItemRequest();
+        getItemRequest.setTableName(TABLE_EXPENSE);
+
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put(ATTRIBUTE_OWNR, new AttributeValue(ownr));
+        key.put(ATTRIBUTE_TIMESTAMP, new AttributeValue().withN(id));
+        getItemRequest.setKey(key);
+        GetItemResult result = amazonDynamoDB.getItem(getItemRequest);
+
+        if (result.getItem() == null) {
+            throw new ExpenseNotFoundException();
+        }
+
+        return toExpense(result.getItem());
+    }
+
+    private static ExpenseEntity toExpense(Map<String, AttributeValue> expenseAttributeValues) {
+        AttributeValue creditCardAttributeValue = expenseAttributeValues.get(ATTRIBUTE_CREDITCARD);
+        AttributeValue creditCardPaidAttributeValue = expenseAttributeValues.get(ATTRIBUTE_CREDITCARD_PAID);
+
+        return new ExpenseEntity()
+                .ownr(expenseAttributeValues.get(ATTRIBUTE_OWNR).getS())
+                .timestamp(expenseAttributeValues.get(ATTRIBUTE_TIMESTAMP).getN())
+                .date(LocalDate.parse(expenseAttributeValues.get(ATTRIBUTE_DATE).getS(), DateTimeFormatter.ISO_DATE))
+                .amount(BigDecimal.valueOf(Double.parseDouble(expenseAttributeValues.get(ATTRIBUTE_AMOUNT).getN())))
+                .tags(expenseAttributeValues.get(ATTRIBUTE_TAGS).getSS())
+                .description(expenseAttributeValues.get(ATTRIBUTE_DESCRIPTION).getS())
+                .creditCard(creditCardAttributeValue == null ? null : creditCardAttributeValue.getBOOL())
+                .creditCardPaid(creditCardPaidAttributeValue == null ? null : creditCardPaidAttributeValue.getBOOL());
     }
 
     //
@@ -120,37 +151,6 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
     //        return key;
     //    }
     //
-    //    private static Purchase toPurchase(Map<String, AttributeValue> purchaseAttributeValues) {
-    //        return new Purchase()
-    //                .amount(BigDecimal.valueOf(Double.parseDouble(purchaseAttributeValues.get("amount").getN())))
-    //                .creationTimestamp(purchaseAttributeValues.get(ATTRIBUTE_CREATION_TIMESTAMP).getN())
-    //                .shop(toShop(purchaseAttributeValues.get("shop").getM()))
-    //                .items(purchaseAttributeValues.get("items").getSS());
-    //    }
-    //
-    //    private static PurchaseShop toShop(Map<String, AttributeValue> shopAttributeValues) {
-    //        return new PurchaseShop()
-    //                .name(shopAttributeValues.get("name").getS())
-    //                .location(shopAttributeValues.get("location").getS());
-    //    }
-    //
-    //    @Override
-    //    public Purchase getPurchase(String ownr, Integer creationTimestamp) {
-    //        GetItemRequest getItemRequest = new GetItemRequest();
-    //        getItemRequest.setTableName(TABLE_PURCHASE);
-    //
-    //        Map<String, AttributeValue> key = new HashMap<>();
-    //        key.put(ATTRIBUTE_OWNR, new AttributeValue(ownr));
-    //        key.put(ATTRIBUTE_CREATION_TIMESTAMP, new AttributeValue().withN(creationTimestamp.toString()));
-    //        getItemRequest.setKey(key);
-    //        GetItemResult result = amazonDynamoDB.getItem(getItemRequest);
-    //
-    //        if (result.getItem() == null) {
-    //            throw new PurchaseNotFoundException();
-    //        }
-    //
-    //        return toPurchase(result.getItem());
-    //    }
     //
     //    @Override
     //    public void delete(String ownr, Integer creationTimestamp) {

@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class ExceptionHandler {
 
-    @org.springframework.web.bind.annotation.ExceptionHandler(PurchaseNotFoundException.class)
+    @org.springframework.web.bind.annotation.ExceptionHandler(ExpenseNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public void handlePurchaseNotFound(PurchaseNotFoundException purchaseNotFoundException) {
+    public void handlePurchaseNotFound(ExpenseNotFoundException expenseNotFoundException) {
         // do nothing -> response status defined through @ResponseStatus
     }
 }
