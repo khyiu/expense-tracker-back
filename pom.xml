@@ -18,7 +18,7 @@
 		<sonar.projectKey>khyiu_expense-tracker-back</sonar.projectKey>
 		<sonar.organization>khyiu</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
-		<expense-tracker-api-version-hash>6cb0c1f7ec8294f5b4980660c251fe51eff78836</expense-tracker-api-version-hash>
+		<expense-tracker-api-version-hash>cdbb3e34a770041df57dae6c9e3d4e8a3009336c</expense-tracker-api-version-hash>
 		<lombok.version>1.18.12</lombok.version>
 		<mapstruct.version>1.4.2.Final</mapstruct.version>
 	</properties>

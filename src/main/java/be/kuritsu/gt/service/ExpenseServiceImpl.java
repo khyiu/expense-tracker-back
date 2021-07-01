@@ -1,5 +1,8 @@
 package be.kuritsu.gt.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -9,6 +12,7 @@ import be.kuritsu.gt.model.ExpenseRequest;
 import be.kuritsu.gt.model.ExpenseResponse;
 import be.kuritsu.gt.persistence.model.ExpenseEntity;
 import be.kuritsu.gt.repository.ExpenseRepository;
+import be.kuritsu.gt.repository.SortingDirection;
 
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
@@ -35,37 +39,15 @@ public class ExpenseServiceImpl implements ExpenseService {
         return ExpenseMapper.toExpenseResponse(expenseEntity);
     }
 
-    //    @Override
-    //    public List<PurchaseResponse> fetchPurchases(Integer pageSize, SortingDirection sortDirection, Integer exclusiveBoundKey) {
-    //        String ownr = SecurityContextHolder.getContext().getAuthentication().getName();
-    //        List<Purchase> purchases = purchaseRepository.findPurchases(ownr, pageSize, sortDirection, exclusiveBoundKey);
-    //        List<String> purchaseItemsCreationTimestamps = purchases.stream()
-    //                .flatMap(purchase -> purchase.getItems().stream())
-    //                .sorted()
-    //                .collect(Collectors.toList());
-    //        Map<String, PurchaseItem> purchaseItems = purchaseItemsCreationTimestamps.isEmpty() ?
-    //                Collections.emptyMap() :
-    //                purchaseItemRepository.getPurchaseItems(ownr, purchaseItemsCreationTimestamps)
-    //                        .stream()
-    //                        .collect(Collectors.toMap(PurchaseItem::getCreationTimestamp, item -> item));
-    //
-    //        return purchases.stream()
-    //                .map(purchase -> {
-    //                    List<PurchaseItem> associatedPurchaseItems = purchaseItems.entrySet()
-    //                            .stream()
-    //                            .filter(entry -> purchase.getItems().contains(entry.getKey()))
-    //                            .map(Map.Entry::getValue)
-    //                            .collect(Collectors.toList());
-    //
-    //                    List<PurchaseItemResponse> purchaseItemResponses = associatedPurchaseItems
-    //                            .stream()
-    //                            .map(PurchaseMapper::mapToPurchaseItemResponse)
-    //                            .collect(Collectors.toList());
-    //
-    //                    return PurchaseMapper.mapToPurchaseResponse(purchase, purchaseItemResponses);
-    //                })
-    //                .collect(Collectors.toList());
-    //    }
+    @Override
+    public List<ExpenseResponse> getExpenses(Integer pageSize, SortingDirection sortDirection, String exclusiveBoundKey) {
+        String ownr = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<ExpenseEntity> expenseEntities = expenseRepository.getExpenses(ownr, pageSize, sortDirection, exclusiveBoundKey);
+        return expenseEntities.stream()
+                .map(ExpenseMapper::toExpenseResponse)
+                .collect(Collectors.toList());
+    }
+
     //
     //    @Override
     //    public void deletePurchase(Integer creationTimestamp) {

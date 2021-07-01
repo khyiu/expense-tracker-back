@@ -4,11 +4,14 @@ import static be.kuritsu.gt.integration.TestDataFactory.getDefaultExpenseRequest
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -32,6 +35,7 @@ import be.kuritsu.gt.repository.ExpenseRepositoryImpl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(SpringRunner.class)
@@ -178,53 +182,109 @@ public class ExpenseIntegrationTest {
         assertThat(expenseResponse.getCreditCardPaid()).isFalse();
     }
 
-    //
-    //    @Test
-    //    public void test_fetch_purchases_unauthenticated_user() {
-    //        Exception thrownException = Assert.assertThrows(Exception.class, () ->
-    //                mockMvc.perform(get("/purchases")
-    //                        .contentType("application/json")
-    //                        .queryParam("pageSize", "3")
-    //                        .queryParam("sortDirection", "DESC")
-    //                        .queryParam("exclusiveBoundKey", "123456")));
-    //
-    //        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
-    //    }
-    //
-    //    @Test
-    //    @WithMockUser(roles = "GUESTS", username = TEST_USERNAME)
-    //    public void test_fetch_purchases_unauthorized_user() {
-    //        Exception thrownException = Assert.assertThrows(Exception.class, () ->
-    //                mockMvc.perform(get("/purchases")
-    //                        .contentType("application/json")
-    //                        .queryParam("pageSize", "3")
-    //                        .queryParam("sortDirection", "DESC")
-    //                        .queryParam("exclusiveBoundKey", "123456")));
-    //
-    //        assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
-    //    }
-    //
-    //    @Test
-    //    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
-    //    public void test_fetch_purchases_no_results() throws Exception {
-    //        mockMvc.perform(get("/purchases")
-    //                .contentType("application/json")
-    //                .queryParam("pageSize", "3")
-    //                .queryParam("sortDirection", "DESC")
-    //                .queryParam("exclusiveBoundKey", "123456"))
-    //                .andExpect(status().isOk())
-    //                .andExpect(jsonPath("$").isEmpty());
-    //    }
-    //
-    //    @Test
-    //    public void test_get_purchase_unauthenticated_user() {
-    //        Exception thrownException = Assert.assertThrows(Exception.class, () ->
-    //                mockMvc.perform(get("/purchases/123456")
-    //                        .contentType("application/json")));
-    //
-    //        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
-    //    }
-    //
+    @Test
+    public void test_fetch_expenses_unauthenticated_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(get("/expenses")
+                        .contentType("application/json")
+                        .queryParam("pageSize", "3")
+                        .queryParam("sortDirection", "DESC")
+                        .queryParam("exclusiveBoundKey", "123456")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "GUESTS", username = TEST_USERNAME)
+    public void test_fetch_expenses_unauthorized_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(get("/expenses")
+                        .contentType("application/json")
+                        .queryParam("pageSize", "3")
+                        .queryParam("sortDirection", "DESC")
+                        .queryParam("exclusiveBoundKey", "123456")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
+    public void test_fetch_purchases_no_results() throws Exception {
+        mockMvc.perform(get("/expenses")
+                .contentType("application/json")
+                .queryParam("pageSize", "3")
+                .queryParam("sortDirection", "DESC")
+                .queryParam("exclusiveBoundKey", "123456"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
+    public void test_fetch_purchases() throws Exception {
+        final LocalDate localDateSeed = LocalDate.of(2021, 1, 1);
+
+        for (int i = 0; i < 5; i++) {
+            LocalDate expenseDate = localDateSeed.plusDays(i);
+            ExpenseRequest expenseRequest = new ExpenseRequest()
+                    .date(expenseDate)
+                    .amount(BigDecimal.valueOf(i))
+                    .tags(Collections.singletonList(String.format("Tag %d", i)))
+                    .description(String.format("Description %d", i));
+
+            mockMvc.perform(post("/expenses")
+                    .contentType("application/json")
+                    .content(objectMapper.writeValueAsString(expenseRequest)))
+                    .andExpect(status().isCreated());
+        }
+
+        String expenseListJsonString = mockMvc.perform(get("/expenses")
+                .contentType("application/json")
+                .queryParam("pageSize", "2")
+                .queryParam("sortDirection", "DESC")
+        )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        List<ExpenseResponse> expenseResponses = objectMapper.readValue(expenseListJsonString, new TypeReference<List<ExpenseResponse>>() {
+        });
+
+        assertThat(expenseResponses).hasSize(2);
+        assertThat(expenseResponses.get(0).getDate()).isEqualTo(LocalDate.of(2021, 1, 5));
+        assertThat(expenseResponses.get(1).getDate()).isEqualTo(LocalDate.of(2021, 1, 4));
+
+        expenseListJsonString = mockMvc.perform(get("/expenses")
+                .contentType("application/json")
+                .queryParam("pageSize", "2")
+                .queryParam("sortDirection", "DESC")
+                .queryParam("exclusiveBoundKey", expenseResponses.get(1).getId())
+        ).andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        expenseResponses = objectMapper.readValue(expenseListJsonString, new TypeReference<List<ExpenseResponse>>() {
+        });
+
+        assertThat(expenseResponses).hasSize(2);
+        assertThat(expenseResponses.get(0).getDate()).isEqualTo(LocalDate.of(2021, 1, 3));
+        assertThat(expenseResponses.get(1).getDate()).isEqualTo(LocalDate.of(2021, 1, 2));
+
+        expenseListJsonString = mockMvc.perform(get("/expenses")
+                .contentType("application/json")
+                .queryParam("pageSize", "2")
+                .queryParam("sortDirection", "DESC")
+                .queryParam("exclusiveBoundKey", expenseResponses.get(1).getId())
+        ).andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        expenseResponses = objectMapper.readValue(expenseListJsonString, new TypeReference<List<ExpenseResponse>>() {
+        });
+
+        assertThat(expenseResponses).hasSize(1);
+        assertThat(expenseResponses.get(0).getDate()).isEqualTo(LocalDate.of(2021, 1, 1));
+    }
 
     //
     //    @Test

@@ -6,11 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import be.kuritsu.gt.api.ExpensesApi;
 import be.kuritsu.gt.model.ExpenseRequest;
 import be.kuritsu.gt.model.ExpenseResponse;
+import be.kuritsu.gt.repository.SortingDirection;
 import be.kuritsu.gt.service.ExpenseService;
 
 @RestController
@@ -29,10 +31,12 @@ public class ExpenseController implements ExpensesApi {
         return null;
     }
 
+    @CrossOrigin
+    @Secured("ROLE_USERS")
     @Override
-    public ResponseEntity<List<ExpenseResponse>> fetchExpenses(Integer pageSize, String sortDirection, Integer exclusiveBoundKey) {
-        // todo kyiu: implement
-        return null;
+    public ResponseEntity<List<ExpenseResponse>> fetchExpenses(Integer pageSize, String sortDirection, String exclusiveBoundKey) {
+        SortingDirection sortDir = SortingDirection.valueOf(sortDirection);
+        return ResponseEntity.ok(this.expenseService.getExpenses(pageSize, sortDir, exclusiveBoundKey));
     }
 
     @Secured("ROLE_USERS")
@@ -50,15 +54,6 @@ public class ExpenseController implements ExpensesApi {
                 .body(expenseResponse);
     }
 
-//
-//    @CrossOrigin
-//    @Secured("ROLE_USERS")
-//    @Override
-//    public ResponseEntity<List<PurchaseResponse>> fetchPurchases(Integer pageSize, String sortDirection, Integer exclusiveBoundKey) {
-//        SortingDirection sortDir = SortingDirection.valueOf(sortDirection);
-//        return ResponseEntity.ok(this.purchaseService.fetchPurchases(pageSize, sortDir, exclusiveBoundKey));
-//    }
-//
 //    @Secured("ROLE_USERS")
 //    @Override
 //    public ResponseEntity<Void> deletePurchase(Integer creationTimestamp) {
