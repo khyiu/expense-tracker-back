@@ -2,8 +2,7 @@ package be.kuritsu.gt.integration;
 
 import static be.kuritsu.gt.integration.TestDataFactory.getDefaultExpenseRequest;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,6 +36,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
@@ -286,61 +286,56 @@ public class ExpenseIntegrationTest {
         assertThat(expenseResponses.get(0).getDate()).isEqualTo(LocalDate.of(2021, 1, 1));
     }
 
-    //
-    //    @Test
-    //    public void test_delete_purchase_unauthenticated_user() {
-    //        Exception thrownException = Assert.assertThrows(Exception.class, () ->
-    //                mockMvc.perform(delete("/purchases/123456")
-    //                        .contentType("application/json")));
-    //
-    //        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
-    //    }
-    //
-    //    @Test
-    //    @WithMockUser(roles = "GUESTS", username = TEST_USERNAME)
-    //    public void test_delete_purchase_unauthorized_user() {
-    //        Exception thrownException = Assert.assertThrows(Exception.class, () ->
-    //                mockMvc.perform(delete("/purchases/123456")
-    //                        .contentType("application/json")));
-    //
-    //        assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
-    //    }
-    //
-    //    @Test
-    //    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
-    //    public void test_delete_purchase_not_found() throws Exception {
-    //        mockMvc.perform(delete("/purchases/123456")
-    //                .contentType("application/json"))
-    //                .andExpect(status().isNotFound());
-    //    }
-    //
-    //    @Test
-    //    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
-    //    public void test_delete_purchase() throws Exception {
-    //        MvcResult mvcResult = mockMvc.perform(post("/purchases")
-    //                .contentType("application/json")
-    //                .content(objectMapper.writeValueAsString(getDefaultPurchaseRequest())))
-    //                .andExpect(status().isCreated())
-    //                .andReturn();
-    //
-    //        String jsonResponse = mvcResult.getResponse().getContentAsString();
-    //        PurchaseResponse createdPurchaseResponse = objectMapper.readValue(jsonResponse, PurchaseResponse.class);
-    //
-    //        mvcResult = mockMvc.perform(get("/purchases/{creationTimestamp}", createdPurchaseResponse.getId().toString())
-    //                .contentType("application/json"))
-    //                .andExpect(status().isOk())
-    //                .andReturn();
-    //
-    //        jsonResponse = mvcResult.getResponse().getContentAsString();
-    //        PurchaseResponse fetchedPurchaseResponse = objectMapper.readValue(jsonResponse, PurchaseResponse.class);
-    //        assertThat(fetchedPurchaseResponse.getItems()).hasSize(1);
-    //
-    //        mockMvc.perform(delete("/purchases/{creationTimestamp}", fetchedPurchaseResponse.getId().toString())
-    //                .contentType("application/json"))
-    //                .andExpect(status().isOk());
-    //
-    //        mockMvc.perform(get("/purchases/{creationTimestamp}", createdPurchaseResponse.getId().toString())
-    //                .contentType("application/json"))
-    //                .andExpect(status().isNotFound());
-    //    }
+    @Test
+    public void test_delete_expense_unauthenticated_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(delete("/expenses/{id}", "12345")
+                        .contentType("application/json")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AuthenticationCredentialsNotFoundException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "GUESTS", username = TEST_USERNAME)
+    public void test_delete_expense_unauthorized_user() {
+        Exception thrownException = Assert.assertThrows(Exception.class, () ->
+                mockMvc.perform(delete("/expenses/{id}", "12345")
+                        .contentType("application/json")));
+
+        assertThat(thrownException).hasCauseInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
+    public void test_delete_expense_not_found() throws Exception {
+        mockMvc.perform(delete("/expenses/{id}", "12345")
+                .contentType("application/json"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "USERS", username = TEST_USERNAME)
+    public void test_delete_expense() throws Exception {
+        ExpenseRequest defaultExpenseRequest = getDefaultExpenseRequest();
+
+        String createJsonResponse = mockMvc.perform(post("/expenses")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(defaultExpenseRequest)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String expenseId = JsonPath.parse(createJsonResponse).read("$.id").toString();
+
+        mockMvc.perform(get("/expenses/{id}", expenseId))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/expenses/{id}", expenseId)
+                .contentType("application/json"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/expenses/{id}", expenseId))
+                .andExpect(status().isNotFound());
+    }
 }

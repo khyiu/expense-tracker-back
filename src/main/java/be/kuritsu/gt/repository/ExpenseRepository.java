@@ -13,7 +13,6 @@ public interface ExpenseRepository {
     ExpenseEntity getExpense(String ownr, String id);
 
     List<ExpenseEntity> getExpenses(String owrn, int pageSize, SortingDirection sortingDirection, @CheckForNull String exclusiveBoundKey);
-    //
-    //
-    //    void delete(String ownr, Integer creationTimestamp);
+
+    void delete(String ownr, String id);
 }

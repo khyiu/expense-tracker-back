@@ -48,16 +48,9 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .collect(Collectors.toList());
     }
 
-    //
-    //    @Override
-    //    public void deletePurchase(Integer creationTimestamp) {
-    //        String ownr = SecurityContextHolder.getContext().getAuthentication().getName();
-    //        Purchase purchase = purchaseRepository.getPurchase(ownr, creationTimestamp);
-    //
-    //        purchaseRepository.delete(ownr, Integer.parseInt(purchase.getCreationTimestamp()));
-    //        purchase.getItems()
-    //                .forEach(itemCreationTimestamp -> purchaseItemRepository.delete(ownr, Integer.parseInt(itemCreationTimestamp)));
-    //    }
-    //
-
+    @Override
+    public void deleteExpense(String id) {
+        String ownr = SecurityContextHolder.getContext().getAuthentication().getName();
+        expenseRepository.delete(ownr, id);
+    }
 }

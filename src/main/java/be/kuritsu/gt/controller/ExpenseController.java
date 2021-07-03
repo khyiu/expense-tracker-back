@@ -25,10 +25,11 @@ public class ExpenseController implements ExpensesApi {
         this.expenseService = expenseService;
     }
 
+    @Secured("ROLE_USERS")
     @Override
     public ResponseEntity<Void> deleteExpense(String id) {
-        // todo kyiu: implement
-        return null;
+        expenseService.deleteExpense(id);
+        return ResponseEntity.ok().build();
     }
 
     @CrossOrigin
@@ -53,17 +54,4 @@ public class ExpenseController implements ExpensesApi {
                 .status(HttpStatus.CREATED)
                 .body(expenseResponse);
     }
-
-//    @Secured("ROLE_USERS")
-//    @Override
-//    public ResponseEntity<Void> deletePurchase(Integer creationTimestamp) {
-//        purchaseService.deletePurchase(creationTimestamp);
-//        return ResponseEntity.ok().build();
-//    }
-//
-//    @Secured("ROLE_USERS")
-//    @Override
-//    public ResponseEntity<PurchaseResponse> getPurchase(Integer creationTimestamp) {
-//        return ResponseEntity.ok(purchaseService.getPurchase(creationTimestamp));
-//    }
 }

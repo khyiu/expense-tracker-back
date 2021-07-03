@@ -14,5 +14,5 @@ public interface ExpenseService {
 
     List<ExpenseResponse> getExpenses(Integer pageSize, SortingDirection sortDirection, String exclusiveBoundKey);
 
-    //    void deletePurchase(Integer creationTimestamp);
+    void deleteExpense(String id);
 }

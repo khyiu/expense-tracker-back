@@ -16,6 +16,7 @@ import be.kuritsu.gt.persistence.model.ExpenseEntity;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
@@ -112,65 +113,68 @@ public class ExpenseRepositoryImpl implements ExpenseRepository {
                 .creditCardPaid(creditCardPaidAttributeValue == null ? null : creditCardPaidAttributeValue.getBOOL());
     }
 
+    @Override
+    public List<ExpenseEntity> getExpenses(String owrn, int pageSize, SortingDirection sortingDirection, @CheckForNull String exclusiveBoundKey) {
+        QueryRequest queryRequest = createGetExpensesQueryRequest(owrn, pageSize, sortingDirection, exclusiveBoundKey);
+        QueryResult queryResult = amazonDynamoDB.query(queryRequest);
+        return queryResult.getItems()
+                .stream()
+                .map(ExpenseRepositoryImpl::toExpense)
+                .collect(Collectors.toList());
+    }
 
-        @Override
-        public List<ExpenseEntity> getExpenses(String owrn, int pageSize, SortingDirection sortingDirection, @CheckForNull String exclusiveBoundKey) {
-            QueryRequest queryRequest = createGetExpensesQueryRequest(owrn, pageSize, sortingDirection, exclusiveBoundKey);
-            QueryResult queryResult = amazonDynamoDB.query(queryRequest);
-            return queryResult.getItems()
-                    .stream()
-                    .map(ExpenseRepositoryImpl::toExpense)
-                    .collect(Collectors.toList());
+    private static QueryRequest createGetExpensesQueryRequest(String ownr, int pageSize, SortingDirection sortingDirection, @CheckForNull String exclusiveBoundKey) {
+        QueryRequest queryRequest = new QueryRequest();
+        queryRequest.setTableName(TABLE_EXPENSE);
+        queryRequest.setKeyConditionExpression(PLACEHOLDER_PARTITION_ATTRIBUTE_NAME + " = :partitionAttributeValue");
+        queryRequest.setConsistentRead(false);
+        queryRequest.setScanIndexForward(sortingDirection == SortingDirection.ASC);
+        queryRequest.setLimit(pageSize);
+
+        if (exclusiveBoundKey != null) {
+            queryRequest.setExclusiveStartKey(getExclusiveStartKey(ownr, exclusiveBoundKey));
         }
 
-        private static QueryRequest createGetExpensesQueryRequest(String ownr, int pageSize, SortingDirection sortingDirection, @CheckForNull String exclusiveBoundKey) {
-            QueryRequest queryRequest = new QueryRequest();
-            queryRequest.setTableName(TABLE_EXPENSE);
-            queryRequest.setKeyConditionExpression(PLACEHOLDER_PARTITION_ATTRIBUTE_NAME + " = :partitionAttributeValue");
-            queryRequest.setConsistentRead(false);
-            queryRequest.setScanIndexForward(sortingDirection == SortingDirection.ASC);
-            queryRequest.setLimit(pageSize);
+        queryRequest.setExpressionAttributeNames(getExpressionAttributeNames());
+        queryRequest.setExpressionAttributeValues(getExpressionAttributeValues(ownr));
+        return queryRequest;
+    }
 
-            if (exclusiveBoundKey != null) {
-                queryRequest.setExclusiveStartKey(getExclusiveStartKey(ownr, exclusiveBoundKey));
-            }
+    private static Map<String, AttributeValue> getExclusiveStartKey(String ownr, String exclusiveBoundKey) {
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put(ATTRIBUTE_OWNR, new AttributeValue(ownr));
+        key.put(ATTRIBUTE_TIMESTAMP, new AttributeValue().withN(exclusiveBoundKey));
+        return key;
+    }
 
-            queryRequest.setExpressionAttributeNames(getExpressionAttributeNames());
-            queryRequest.setExpressionAttributeValues(getExpressionAttributeValues(ownr));
-            return queryRequest;
+    private static Map<String, String> getExpressionAttributeNames() {
+        Map<String, String> expressionAttributeNames = new HashMap<>();
+        expressionAttributeNames.put(PLACEHOLDER_PARTITION_ATTRIBUTE_NAME, ATTRIBUTE_OWNR);
+        return expressionAttributeNames;
+    }
+
+    private static Map<String, AttributeValue> getExpressionAttributeValues(String ownr) {
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(PLACEHOLDER_PARTITION_ATTRIBUTE_VALUE, new AttributeValue(ownr));
+        return expressionAttributeValues;
+    }
+
+    @Override
+    public void delete(String ownr, String id) {
+        ExpenseEntity expense = getExpense(ownr, id);
+
+        if (expense == null) {
+            throw new ExpenseNotFoundException();
         }
 
-        private static Map<String, AttributeValue> getExclusiveStartKey(String ownr, String exclusiveBoundKey) {
-            Map<String, AttributeValue> key = new HashMap<>();
-            key.put(ATTRIBUTE_OWNR, new AttributeValue(ownr));
-            key.put(ATTRIBUTE_TIMESTAMP, new AttributeValue().withN(exclusiveBoundKey.toString()));
-            return key;
-        }
+        DeleteItemRequest deleteItemRequest = new DeleteItemRequest();
+        deleteItemRequest.setTableName(TABLE_EXPENSE);
 
-        private static Map<String, String> getExpressionAttributeNames() {
-            Map<String, String> expressionAttributeNames = new HashMap<>();
-            expressionAttributeNames.put(PLACEHOLDER_PARTITION_ATTRIBUTE_NAME, ATTRIBUTE_OWNR);
-            return expressionAttributeNames;
-        }
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put(ATTRIBUTE_OWNR, new AttributeValue(ownr));
+        key.put(ATTRIBUTE_TIMESTAMP, new AttributeValue().withN(id));
+        deleteItemRequest.setKey(key);
 
-        private static Map<String, AttributeValue> getExpressionAttributeValues(String ownr) {
-            Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-            expressionAttributeValues.put(PLACEHOLDER_PARTITION_ATTRIBUTE_VALUE, new AttributeValue(ownr));
-            return expressionAttributeValues;
-        }
-
-    //
-    //
-    //    @Override
-    //    public void delete(String ownr, Integer creationTimestamp) {
-    //        DeleteItemRequest deleteItemRequest = new DeleteItemRequest();
-    //        deleteItemRequest.setTableName(TABLE_PURCHASE);
-    //
-    //        Map<String, AttributeValue> key = new HashMap<>();
-    //        key.put(ATTRIBUTE_OWNR, new AttributeValue(ownr));
-    //        key.put(ATTRIBUTE_CREATION_TIMESTAMP, new AttributeValue().withN(creationTimestamp.toString()));
-    //        deleteItemRequest.setKey(key);
-    //
-    //        amazonDynamoDB.deleteItem(deleteItemRequest);
-    //    }
+        amazonDynamoDB.deleteItem(deleteItemRequest);
+    }
 }
